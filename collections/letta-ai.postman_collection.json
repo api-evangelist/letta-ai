@@ -1,0 +1,1471 @@
+{
+  "info": {
+    "name": "Letta API",
+    "description": "Programmatic creation, configuration, and messaging of stateful Letta agents - persistent memory blocks and archives, tools and MCP servers, data sources, identities, multi-agent groups, models/providers, and run/job/step observability. Base URL: https://api.letta.com/v1 (Cloud) or http://localhost:8283/v1 (self-hosted). All requests require a Bearer API key.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.letta.com/v1",
+      "type": "string"
+    },
+    {
+      "key": "bearerToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Agents",
+      "item": [
+        {
+          "name": "Get a list of all agents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents"
+              ]
+            },
+            "description": "Get a list of all agents."
+          }
+        },
+        {
+          "name": "Create an agent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/agents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents"
+              ]
+            },
+            "description": "Create an agent.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"customer-support-agent\",\n  \"model\": \"openai/gpt-4o\",\n  \"embedding\": \"openai/text-embedding-3-small\",\n  \"memory_blocks\": [\n    {\n      \"label\": \"persona\",\n      \"value\": \"I am a helpful customer support agent.\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Retrieve an agent by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Retrieve an agent by ID."
+          }
+        },
+        {
+          "name": "Modify an agent",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Modify an agent.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete an agent",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Delete an agent."
+          }
+        },
+        {
+          "name": "Export an agent as a portable agent file",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "export"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Export an agent as a portable agent file."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "List an agent's message history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "messages"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "List an agent's message history."
+          }
+        },
+        {
+          "name": "Send a message to an agent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "messages"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Send a message to an agent.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"What's the status of my order?\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Send a message and stream the agent's response as SSE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/messages/stream",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "messages",
+                "stream"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Send a message and stream the agent's response as SSE.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"What's the status of my order?\"\n    }\n  ],\n  \"stream_steps\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Cancel an in-flight run for an agent",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/messages/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "messages",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Cancel an in-flight run for an agent."
+          }
+        },
+        {
+          "name": "Reset an agent's message history",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/reset-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "reset-messages"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Reset an agent's message history."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Memory Blocks",
+      "item": [
+        {
+          "name": "List the core-memory blocks attached to an agent",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/core-memory/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "core-memory",
+                "blocks"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "List the core-memory blocks attached to an agent."
+          }
+        },
+        {
+          "name": "Retrieve a labeled core-memory block for an agent",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/core-memory/blocks/:block_label",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "core-memory",
+                "blocks",
+                ":block_label"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                },
+                {
+                  "key": "block_label",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Retrieve a labeled core-memory block for an agent."
+          }
+        },
+        {
+          "name": "Modify a core-memory block for an agent",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/core-memory/blocks/:block_label",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "core-memory",
+                "blocks",
+                ":block_label"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                },
+                {
+                  "key": "block_label",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Modify a core-memory block for an agent.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"Updated memory content.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List all standalone memory blocks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blocks"
+              ]
+            },
+            "description": "List all standalone memory blocks."
+          }
+        },
+        {
+          "name": "Create a standalone memory block",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blocks"
+              ]
+            },
+            "description": "Create a standalone memory block.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"human\",\n  \"value\": \"The user's name is Alex.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete a memory block",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blocks/:block_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "blocks",
+                ":block_id"
+              ],
+              "variable": [
+                {
+                  "key": "block_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Delete a memory block."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Archival Memory",
+      "item": [
+        {
+          "name": "List archives",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/archives",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "archives"
+              ]
+            },
+            "description": "List archives."
+          }
+        },
+        {
+          "name": "Create an archive",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/archives",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "archives"
+              ]
+            },
+            "description": "Create an archive.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"support-history\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create a passage in an archive",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/archives/:archive_id/passages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "archives",
+                ":archive_id",
+                "passages"
+              ],
+              "variable": [
+                {
+                  "key": "archive_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Create a passage in an archive.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Customer prefers email contact.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Search an agent's archival memory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/archival-memory/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "archival-memory",
+                "search"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Search an agent's archival memory."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tools",
+      "item": [
+        {
+          "name": "List tools",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tools",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tools"
+              ]
+            },
+            "description": "List tools."
+          }
+        },
+        {
+          "name": "Create a tool from Python source",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tools",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tools"
+              ]
+            },
+            "description": "Create a tool from Python source.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_code\": \"def get_weather(city: str) -> str:\\n    \\\"\\\"\\\"Get the weather for a city.\\\"\\\"\\\"\\n    return f\\\"Sunny in {city}\\\"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Run a tool from raw source without attaching it to an agent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tools/run",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tools",
+                "run"
+              ]
+            },
+            "description": "Run a tool from raw source without attaching it to an agent.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_code\": \"def add(a: int, b: int) -> int:\\n    return a + b\",\n  \"args\": {\n    \"a\": 2,\n    \"b\": 3\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete a tool",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tools/:tool_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tools",
+                ":tool_id"
+              ],
+              "variable": [
+                {
+                  "key": "tool_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Delete a tool."
+          }
+        }
+      ]
+    },
+    {
+      "name": "MCP Servers",
+      "item": [
+        {
+          "name": "List configured MCP servers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mcp-servers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp-servers"
+              ]
+            },
+            "description": "List configured MCP servers."
+          }
+        },
+        {
+          "name": "Register a new MCP server",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp-servers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp-servers"
+              ]
+            },
+            "description": "Register a new MCP server.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"server_name\": \"internal-search\",\n  \"type\": \"streamable_http\",\n  \"server_url\": \"https://mcp.example.com/mcp\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List the tools exposed by an MCP server",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mcp-servers/:mcp_server_id/tools",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp-servers",
+                ":mcp_server_id",
+                "tools"
+              ],
+              "variable": [
+                {
+                  "key": "mcp_server_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "List the tools exposed by an MCP server."
+          }
+        },
+        {
+          "name": "Delete an MCP server",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mcp-servers/:mcp_server_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp-servers",
+                ":mcp_server_id"
+              ],
+              "variable": [
+                {
+                  "key": "mcp_server_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Delete an MCP server."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sources and Files",
+      "item": [
+        {
+          "name": "List data sources",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sources",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sources"
+              ]
+            },
+            "description": "List data sources."
+          }
+        },
+        {
+          "name": "Create a data source",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sources",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sources"
+              ]
+            },
+            "description": "Create a data source.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"product-docs\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Upload a file to a data source",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sources/:source_id/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sources",
+                ":source_id",
+                "upload"
+              ],
+              "variable": [
+                {
+                  "key": "source_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Upload a file to a data source."
+          }
+        },
+        {
+          "name": "List the files in a data source",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sources/:source_id/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sources",
+                ":source_id",
+                "files"
+              ],
+              "variable": [
+                {
+                  "key": "source_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "List the files in a data source."
+          }
+        },
+        {
+          "name": "Delete a data source",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sources/:source_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sources",
+                ":source_id"
+              ],
+              "variable": [
+                {
+                  "key": "source_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Delete a data source."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Identities",
+      "item": [
+        {
+          "name": "List identities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/identities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identities"
+              ]
+            },
+            "description": "List identities."
+          }
+        },
+        {
+          "name": "Create an identity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/identities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identities"
+              ]
+            },
+            "description": "Create an identity.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier_key\": \"user-42\",\n  \"name\": \"Alex\",\n  \"identity_type\": \"user\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Attach an identity to an agent",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/agents/:agent_id/identities/attach/:identity_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agents",
+                ":agent_id",
+                "identities",
+                "attach",
+                ":identity_id"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                },
+                {
+                  "key": "identity_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Attach an identity to an agent."
+          }
+        },
+        {
+          "name": "Delete an identity",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/identities/:identity_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identities",
+                ":identity_id"
+              ],
+              "variable": [
+                {
+                  "key": "identity_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Delete an identity."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Multi-Agent Groups",
+      "item": [
+        {
+          "name": "List multi-agent groups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups"
+              ]
+            },
+            "description": "List multi-agent groups."
+          }
+        },
+        {
+          "name": "Create a multi-agent group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/groups",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups"
+              ]
+            },
+            "description": "Create a multi-agent group.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_ids\": [\n    \"agent-aaa\",\n    \"agent-bbb\"\n  ],\n  \"manager_config\": {\n    \"manager_type\": \"round_robin\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "List a group's combined message history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/:group_id/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                ":group_id",
+                "messages"
+              ],
+              "variable": [
+                {
+                  "key": "group_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "List a group's combined message history."
+          }
+        },
+        {
+          "name": "Delete a multi-agent group",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/groups/:group_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "groups",
+                ":group_id"
+              ],
+              "variable": [
+                {
+                  "key": "group_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Delete a multi-agent group."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Models and Providers",
+      "item": [
+        {
+          "name": "List available LLM models",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/models",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "models"
+              ]
+            },
+            "description": "List available LLM models."
+          }
+        },
+        {
+          "name": "List available embedding models",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/models/embedding",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "models",
+                "embedding"
+              ]
+            },
+            "description": "List available embedding models."
+          }
+        },
+        {
+          "name": "List configured model providers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/providers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "providers"
+              ]
+            },
+            "description": "List configured model providers."
+          }
+        },
+        {
+          "name": "Register a BYOK model provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/providers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "providers"
+              ]
+            },
+            "description": "Register a BYOK model provider.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"my-anthropic\",\n  \"provider_type\": \"anthropic\",\n  \"api_key\": \"sk-ant-...\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Runs, Jobs and Steps",
+      "item": [
+        {
+          "name": "List runs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/runs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "runs"
+              ]
+            },
+            "description": "List runs."
+          }
+        },
+        {
+          "name": "Retrieve a run",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/runs/:run_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "runs",
+                ":run_id"
+              ],
+              "variable": [
+                {
+                  "key": "run_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Retrieve a run."
+          }
+        },
+        {
+          "name": "Retrieve usage statistics for a run",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/runs/:run_id/usage",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "runs",
+                ":run_id",
+                "usage"
+              ],
+              "variable": [
+                {
+                  "key": "run_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Retrieve usage statistics for a run."
+          }
+        },
+        {
+          "name": "List background jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jobs"
+              ]
+            },
+            "description": "List background jobs."
+          }
+        },
+        {
+          "name": "Cancel a background job",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/:job_id/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jobs",
+                ":job_id",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "job_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Cancel a background job."
+          }
+        },
+        {
+          "name": "List steps",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/steps",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "steps"
+              ]
+            },
+            "description": "List steps."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agent Templates",
+      "item": [
+        {
+          "name": "List agent templates (Cloud-only)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates"
+              ]
+            },
+            "description": "List agent templates (Cloud-only)."
+          }
+        },
+        {
+          "name": "Create new agents from a template version (Cloud-only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/templates/:project_id/:template_version/agents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates",
+                ":project_id",
+                ":template_version",
+                "agents"
+              ],
+              "variable": [
+                {
+                  "key": "project_id",
+                  "value": ""
+                },
+                {
+                  "key": "template_version",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Create new agents from a template version (Cloud-only).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_name\": \"from-template-agent\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat Completions",
+      "item": [
+        {
+          "name": "OpenAI-compatible chat completion routed to a Letta agent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chat/completions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chat",
+                "completions"
+              ]
+            },
+            "description": "OpenAI-compatible chat completion routed to a Letta agent.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model\": \"agent-123e4567-e89b-42d3-8456-426614174000\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Hello\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "OpenAI-compatible chat completion tuned for low-latency voice agents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/voice-beta/:agent_id/chat/completions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "voice-beta",
+                ":agent_id",
+                "chat",
+                "completions"
+              ],
+              "variable": [
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "OpenAI-compatible chat completion tuned for low-latency voice agents.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Hello\"\n    }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

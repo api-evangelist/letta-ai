@@ -1,0 +1,302 @@
+aid: letta-ai
+url: https://raw.githubusercontent.com/api-evangelist/letta-ai/refs/heads/main/apis.yml
+name: Letta
+kind: company
+description: Letta (formerly MemGPT) builds stateful AI agents with persistent memory
+  that runs as a service. The Letta REST API creates, configures, and messages
+  agents whose memory - core context blocks and archival vector memory - survives
+  across sessions, and manages the tools, data sources, identities, and multi-agent
+  groups those agents use. It is offered as a managed Letta Cloud API and as an
+  open-source, self-hostable server with the same OpenAPI-documented interface.
+image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+tags:
+- AI
+- Agents
+- LLM
+- Memory
+- Stateful Agents
+- MemGPT
+created: '2026-07-02'
+modified: '2026-07-02'
+specificationVersion: '0.19'
+apis:
+- aid: letta-ai:letta-ai-agents-api
+  name: Letta Agents API
+  tags:
+  - Agents
+  - Stateful Agents
+  - Lifecycle
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/api-reference/agents/list
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/core-concepts/stateful-agents/
+    type: Documentation
+  - url: https://docs.letta.com/api-reference/agents/list
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: Create, list, search, count, retrieve, modify, delete, import, and
+    export stateful agents - each with its own persistent memory, tools, sources,
+    and model configuration. Agents can be recompiled, reset, and exported as
+    portable agent files.
+- aid: letta-ai:letta-ai-messages-api
+  name: Letta Messages API
+  tags:
+  - Messages
+  - Streaming
+  - Conversations
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/api-reference/agents/messages/stream
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/core-concepts/messages/streaming/
+    type: Documentation
+  - url: https://docs.letta.com/api-reference/agents/messages/create
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  - url: asyncapi/letta-ai-asyncapi.yml
+    type: AsyncAPI
+  description: Send synchronous, asynchronous, and streaming messages to an agent,
+    list and search message history, cancel an in-flight run, preview the raw
+    model payload, and reset or summarize an agent's conversation. Streaming is
+    delivered as Server-Sent Events over the messages/stream endpoint.
+- aid: letta-ai:letta-ai-memory-blocks-api
+  name: Letta Memory Blocks API
+  tags:
+  - Memory
+  - Core Memory
+  - Blocks
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/guides/core-concepts/memory/memory-blocks/
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/core-concepts/memory/memory-blocks/
+    type: Documentation
+  - url: https://docs.letta.com/api-reference/blocks/list
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: Manage core-memory blocks - the labeled, always-in-context text
+    that gives an agent its persona, human, and task memory. Create, list,
+    retrieve, modify, and delete standalone blocks, and attach or detach blocks
+    to and from agents, groups, and identities to share memory across them.
+- aid: letta-ai:letta-ai-archival-memory-api
+  name: Letta Archival Memory API
+  tags:
+  - Archival Memory
+  - Archives
+  - Passages
+  - Vector Search
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/api-reference/archives/list-archives
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/core-concepts/memory/archival-memory/
+    type: Documentation
+  - url: https://docs.letta.com/api-reference/archives/list-archives
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: Manage archives - an agent's out-of-context, searchable long-term
+    memory - and the passages stored inside them. Create and list archives,
+    attach or detach an archive to an agent, and create, batch-create, search,
+    and delete individual archival passages.
+- aid: letta-ai:letta-ai-tools-api
+  name: Letta Tools API
+  tags:
+  - Tools
+  - Function Calling
+  - Sandbox
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/api-reference/tools/list
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/core-concepts/tools/server-tools/
+    type: Documentation
+  - url: https://docs.letta.com/api-reference/tools/list
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: Create, list, search, count, upsert, modify, delete, and directly
+    run tools (Python functions) that agents call. Includes registering the
+    built-in base tool set and executing a tool from raw source without
+    attaching it to an agent first.
+- aid: letta-ai:letta-ai-mcp-servers-api
+  name: Letta MCP Servers API
+  tags:
+  - MCP
+  - Model Context Protocol
+  - Tool Servers
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/api-reference/tools/list-mcp-servers
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/core-concepts/tools/mcp-tools/
+    type: Documentation
+  - url: https://docs.letta.com/api-reference/tools/list-mcp-servers
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: Register, connect, test, refresh, update, and delete remote MCP
+    (Model Context Protocol) servers, list the tools each server exposes, add
+    an individual MCP tool to an agent's toolset, and execute an MCP tool
+    directly, including OAuth-based MCP server connections.
+- aid: letta-ai:letta-ai-sources-files-api
+  name: Letta Sources and Files API
+  tags:
+  - Sources
+  - Folders
+  - Files
+  - RAG
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/api-reference/sources/list
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/core-concepts/filesystem/
+    type: Documentation
+  - url: https://docs.letta.com/api-reference/sources/list
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: Create and manage data sources (also exposed as folders) that
+    hold uploaded files for agent grounding and retrieval - upload files, list
+    and delete files and their extracted passages, and attach or detach a
+    source to an agent's file system.
+- aid: letta-ai:letta-ai-identities-api
+  name: Letta Identities API
+  tags:
+  - Identities
+  - Multi-Tenant
+  - End Users
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/api-reference/agents/identities/attach
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/api-reference/agents/identities/attach
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: Model the end users of a multi-tenant Letta deployment as
+    identities. Create, list, count, retrieve, modify, upsert, and delete
+    identities; set custom identity properties; and attach or detach an
+    identity to agents and memory blocks so many agents can share one user's
+    context.
+- aid: letta-ai:letta-ai-groups-api
+  name: Letta Multi-Agent Groups API
+  tags:
+  - Groups
+  - Multi-Agent
+  - Shared Memory
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/guides/core-concepts/memory/shared-memory/
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/core-concepts/memory/shared-memory/
+    type: Documentation
+  - url: https://raw.githubusercontent.com/letta-ai/letta/main/fern/openapi.json
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: Create, list, retrieve, modify, and delete multi-agent groups that
+    coordinate several agents (round-robin, supervisor, and other patterns)
+    around shared memory blocks. Attach or detach shared blocks, and list,
+    modify, and reset the group's combined message history.
+- aid: letta-ai:letta-ai-models-providers-api
+  name: Letta Models and Providers API
+  tags:
+  - Models
+  - Providers
+  - BYOK
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/api-reference/models/list
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/build-with-letta/models/
+    type: Documentation
+  - url: https://docs.letta.com/api-reference/models/list
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: List available LLM and embedding models, and register, check,
+    list, retrieve, modify, delete, and refresh bring-your-own-key (BYOK) model
+    providers (OpenAI, Anthropic, Google, Azure, local/self-hosted, and more)
+    that agents can be configured to use.
+- aid: letta-ai:letta-ai-runs-jobs-steps-api
+  name: Letta Runs, Jobs and Steps API
+  tags:
+  - Runs
+  - Jobs
+  - Steps
+  - Observability
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/api-reference/runs/list
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/observability/monitoring
+    type: Documentation
+  - url: https://docs.letta.com/api-reference/runs/list
+    type: APIReference
+  - url: https://docs.letta.com/api-reference/jobs/list
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: Inspect the asynchronous execution history behind agent messages.
+    List and retrieve runs and their messages, metrics, usage, trace, and
+    stream; list and cancel background jobs; and list steps (individual model
+    calls within a run) with per-step feedback, metrics, and trace.
+- aid: letta-ai:letta-ai-templates-api
+  name: Letta Agent Templates API
+  tags:
+  - Templates
+  - Deployments
+  - Cloud Only
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/guides/templates/client-side-tokens/
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://docs.letta.com/guides/templates/client-side-tokens/
+    type: Documentation
+  - url: https://raw.githubusercontent.com/letta-ai/letta/main/fern/openapi.json
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: Cloud-only API for versioning agent configurations as templates -
+    create, save, roll back, rename, and delete template versions, snapshot
+    and restore a template from an agent file, and deploy new agents from a
+    template version.
+- aid: letta-ai:letta-ai-chat-completions-api
+  name: Letta Chat Completions API
+  tags:
+  - Chat Completions
+  - OpenAI Compatible
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.letta.com/guides/get-started/intro
+  baseURL: https://api.letta.com/v1
+  properties:
+  - url: https://raw.githubusercontent.com/letta-ai/letta/main/fern/openapi.json
+    type: APIReference
+  - url: openapi/letta-ai-openapi.yml
+    type: OpenAPI
+  description: OpenAI-compatible chat completions endpoint that routes requests
+    to a Letta agent, plus a companion voice-beta chat completions endpoint
+    tuned for low-latency voice agent integrations.
+common:
+- type: GitHubOrganization
+  url: https://github.com/letta-ai
+- type: LinkedIn
+  url: https://www.linkedin.com/company/letta-ai
+- type: Website
+  url: https://www.letta.com
+- type: Documentation
+  url: https://docs.letta.com
+- type: Plans
+  url: plans/letta-ai-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/letta-ai-rate-limits.yml
+- type: FinOps
+  url: finops/letta-ai-finops.yml
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

@@ -1,0 +1,137 @@
+aid: letta-ai
+name: Letta
+review:
+  question: Does Letta expose a documented public WebSocket API?
+  answer: false
+  date: '2026-07-02'
+  reviewer: API Evangelist
+  asyncapiSpecCreated: true
+  asyncapiScopeNote: |
+    Per updated API Evangelist scope (2026-05-29), HTTP Server-Sent Events
+    (SSE) is in-scope for AsyncAPI modeling. An AsyncAPI 2.6 document was
+    created at asyncapi/letta-ai-asyncapi.yml describing the agent-message SSE
+    stream (POST /v1/agents/{agent_id}/messages with stream_steps=true, the
+    OpenAI-compatible POST /v1/chat/completions with stream=true, and the
+    deprecated dedicated POST /v1/agents/{agent_id}/messages/stream endpoint).
+    No WebSocket surface was modeled because none is documented in Letta's
+    own OpenAPI specification.
+findings:
+  summary: |
+    Letta does not publish a documented public WebSocket API. Letta's REST
+    API - the same OpenAPI-documented interface served by Letta Cloud
+    (https://api.letta.com/v1, backed by app.letta.com per Letta's own
+    OpenAPI servers list) and by the open-source, self-hostable Letta server
+    (default http://localhost:8283/v1) - is request/response REST over
+    HTTPS, authenticated with a Bearer API key. Streaming agent responses are
+    delivered as HTTP Server-Sent Events: POST /v1/agents/{agent_id}/messages
+    returns text/event-stream when stream_steps (and optionally
+    stream_tokens) is set on the JSON body; the OpenAI-compatible POST
+    /v1/chat/completions endpoint streams the same way when stream=true; and
+    a dedicated, now-deprecated POST /v1/agents/{agent_id}/messages/stream
+    endpoint offers the same SSE behavior directly. No realtime,
+    bidirectional WebSocket (ws:// or wss://) endpoint is documented anywhere
+    in Letta's fetched OpenAPI specification (239 paths) or in docs.letta.com
+    as of the review date. Letta's own docs explicitly warn that concurrent
+    requests to the same agent are unsupported - each agent processes
+    messages sequentially - reinforcing that the transport model is
+    request/response (optionally streamed one-way via SSE), not a persistent
+    bidirectional socket.
+  transports:
+    - protocol: REST
+      scheme: https
+      baseURL: https://api.letta.com/v1
+      documented: true
+    - protocol: SSE
+      scheme: https
+      note: >-
+        Server-Sent Events delivered over POST /v1/agents/{agent_id}/messages
+        (stream_steps/stream_tokens), the deprecated dedicated
+        POST /v1/agents/{agent_id}/messages/stream endpoint, and the
+        OpenAI-compatible POST /v1/chat/completions endpoint (stream=true).
+        Not WebSocket.
+      documented: true
+    - protocol: WebSocket
+      scheme: wss
+      documented: false
+      note: >-
+        No WebSocket endpoint is documented in Letta's OpenAPI specification,
+        docs.letta.com API reference, or product guides as of the review
+        date.
+  endpointsConfirmed:
+    - GET  https://api.letta.com/v1/agents/
+    - POST https://api.letta.com/v1/agents/
+    - GET  https://api.letta.com/v1/agents/count
+    - POST https://api.letta.com/v1/agents/search
+    - GET  https://api.letta.com/v1/agents/{agent_id}
+    - PATCH https://api.letta.com/v1/agents/{agent_id}
+    - DELETE https://api.letta.com/v1/agents/{agent_id}
+    - GET  https://api.letta.com/v1/agents/{agent_id}/export
+    - GET  https://api.letta.com/v1/agents/{agent_id}/core-memory/blocks
+    - GET  https://api.letta.com/v1/agents/{agent_id}/archival-memory
+    - POST https://api.letta.com/v1/agents/{agent_id}/messages
+    - POST https://api.letta.com/v1/agents/{agent_id}/messages/async
+    - POST https://api.letta.com/v1/agents/{agent_id}/messages/stream
+    - POST https://api.letta.com/v1/agents/{agent_id}/messages/cancel
+    - GET  https://api.letta.com/v1/blocks/
+    - POST https://api.letta.com/v1/blocks/
+    - GET  https://api.letta.com/v1/archives/
+    - POST https://api.letta.com/v1/archives/{archive_id}/passages
+    - GET  https://api.letta.com/v1/tools/
+    - POST https://api.letta.com/v1/tools/run
+    - PUT  https://api.letta.com/v1/tools/mcp/servers
+    - GET  https://api.letta.com/v1/mcp-servers/
+    - GET  https://api.letta.com/v1/sources/
+    - POST https://api.letta.com/v1/sources/{source_id}/upload
+    - GET  https://api.letta.com/v1/folders/
+    - GET  https://api.letta.com/v1/identities/
+    - GET  https://api.letta.com/v1/groups/
+    - GET  https://api.letta.com/v1/models/
+    - GET  https://api.letta.com/v1/providers/
+    - GET  https://api.letta.com/v1/runs/
+    - GET  https://api.letta.com/v1/jobs/
+    - GET  https://api.letta.com/v1/steps/
+    - GET  https://api.letta.com/v1/templates
+    - POST https://api.letta.com/v1/chat/completions
+    - POST https://api.letta.com/v1/voice-beta/{agent_id}/chat/completions
+  endpointsConfirmedNote: >-
+    This is a representative subset. The full Letta OpenAPI document, fetched
+    directly from https://raw.githubusercontent.com/letta-ai/letta/main/fern/openapi.json,
+    contains 239 paths across 30+ resource groups (agents, blocks, archives,
+    tools, mcp-servers, sources, folders, identities, groups, models,
+    providers, runs, jobs, steps, templates, chat, voice-beta, and several
+    internal/legacy groups not surfaced in this catalog entry). 126 of those
+    paths (167 operations) were carried into openapi/letta-ai-openapi.yml.
+sources:
+  - url: https://raw.githubusercontent.com/letta-ai/letta/main/fern/openapi.json
+    type: OpenAPI
+    note: >-
+      Letta's real, generator-of-record OpenAPI 3.0 specification (Fern
+      source), fetched directly from GitHub. Lists servers
+      https://app.letta.com (Letta Cloud) and http://localhost:8283
+      (self-hosted); security scheme bearerAuth (HTTP bearer); no WebSocket
+      paths.
+  - url: https://docs.letta.com/guides/get-started/intro
+    type: Documentation
+    note: >-
+      States the Letta Cloud API base as https://api.letta.com, bearer
+      Authorization header, and the split between Letta Cloud and
+      self-hosted deployment.
+  - url: https://docs.letta.com/api-reference/agents/messages/stream
+    type: APIReference
+    note: Confirms POST /v1/agents/{agent_id}/messages/stream returns an SSE response and is deprecated in favor of streaming via the base messages endpoint.
+  - url: https://docs.letta.com/guides/core-concepts/messages/streaming/
+    type: Documentation
+    note: Describes agent message streaming behavior and the stream_steps/stream_tokens request flags.
+  - url: https://github.com/letta-ai/letta
+    type: SourceCode
+    note: Open-source (Apache-2.0) stateful agents server, self-hostable via Docker or from source; same REST/OpenAPI interface as Letta Cloud.
+actions:
+  asyncapiPath: asyncapi/letta-ai-asyncapi.yml
+  apisYmlUpdated: true
+  reason: |
+    No WebSocket protocol surface exists on Letta's own API. Under the
+    2026-05-29 scope that allows SSE in AsyncAPI, an AsyncAPI 2.6 document
+    was authored for the agent-message SSE stream, with HTTP+SSE transport
+    documented explicitly throughout the spec (server protocol, channel
+    bindings, info.x-transport-notes) so SSE is never misrepresented as
+    WebSocket.

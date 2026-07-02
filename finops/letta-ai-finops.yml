@@ -1,0 +1,104 @@
+specification: FinOps Framework
+specificationVersion: '1.0'
+schema: https://www.finops.org/framework/
+provider: Letta
+providerId: letta-ai
+created: '2026-07-02'
+modified: '2026-07-02'
+reconciled: false
+tags:
+- AI
+- Agents
+- LLM
+- Memory
+- FinOps
+- Cost Management
+- FOCUS
+description: >-
+  FinOps view of Letta spend. Letta Cloud (Developer API plan) bills a
+  monthly base subscription plus metered usage - dollars per active agent per
+  month and dollars per second of tool execution - on top of pay-as-you-go
+  LLM and embedding usage that is passed through from whichever model
+  provider (OpenAI, Anthropic, Google, etc.) an agent is configured to use.
+  The Personal Free and Pro tiers are flat-rate or free, bounded by agent
+  count rather than metered usage. The core Letta server is Apache-2.0
+  licensed and free to self-host, in which case the dominant costs are your
+  own compute plus whatever model provider API keys you bring.
+notes: >-
+  Per-unit Cloud rates should be reconciled against
+  https://docs.letta.com/guides/build-with-letta/pricing before use. Because
+  LLM/embedding token spend is pass-through rather than marked up by Letta,
+  the largest and most variable cost driver for most deployments is the
+  configured model provider, not the Letta platform fee itself.
+sources:
+- https://www.letta.com/
+- https://docs.letta.com/guides/build-with-letta/pricing
+- https://github.com/letta-ai/letta
+- https://focus.finops.org/focus-specification/v1-3/
+alignedWith:
+  framework: FinOps Foundation Framework
+  frameworkUrl: https://www.finops.org/framework/
+  dataSpec: FOCUS
+  dataSpecVersion: '1.3'
+  dataSpecUrl: https://focus.finops.org/focus-specification/v1-3/
+publisherName: Letta
+serviceCategory: AI and Machine Learning
+billingModel:
+  pricingCategory: Usage-Based
+  billingFrequency: Monthly
+  billingCurrency: USD
+  chargeCategories:
+  - Usage
+  - Purchase
+  - Adjustment
+focusColumns:
+  ServiceName: Letta Cloud API
+  ServiceCategory: AI and Machine Learning
+  ProviderName: Letta
+  PublisherName: Letta
+  InvoiceIssuerName: Letta
+  BillingCurrency: USD
+  ChargeCategory: Usage
+  PricingCategory: Usage-Based
+meters:
+- name: active_agents
+  description: Active stateful agents, billed per agent per month on the Developer API plan.
+  unit: agents
+  aggregation: sum
+  dimensions:
+  - account
+  - project
+- name: tool_execution_seconds
+  description: Wall-clock seconds of tool execution across all agents, billed per second.
+  unit: seconds
+  aggregation: sum
+  dimensions:
+  - account
+  - agent
+  - tool
+- name: model_provider_usage
+  description: Pass-through LLM and embedding token usage billed by the configured model provider, not marked up by Letta.
+  unit: tokens
+  aggregation: sum
+  dimensions:
+  - account
+  - agent
+  - model
+- name: self_hosted_compute
+  description: Infrastructure cost of running a self-hosted Letta server (no Letta invoice).
+  unit: hours
+  aggregation: sum
+  dimensions:
+  - deployment
+principles:
+- name: Visibility
+  description: Track active-agent count, tool-execution seconds, and per-model-provider token spend separately, since the model provider bill is typically the largest and most variable component.
+- name: Allocation
+  description: Tag agents, sources, and tools by project or team so per-agent and per-tool costs map to internal cost centers.
+- name: Optimization
+  description: Archive or delete idle agents to avoid paying the per-active-agent fee, scope tool execution to what is necessary, and choose smaller/cheaper models or self-hosted embeddings where agent quality allows.
+- name: Accountability
+  description: Assign an owner per agent and per model-provider API key; review monthly active-agent count, tool-execution time, and provider token spend against budget.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

@@ -1,0 +1,402 @@
+asyncapi: '2.6.0'
+id: 'urn:com:letta:api:v1:agents:messages:sse'
+info:
+  title: Letta Agent Message Streaming (HTTP + SSE)
+  version: '1.0.0'
+  description: |
+    AsyncAPI 2.6 description of Letta's **agent message streaming** surface.
+
+    Letta does not publish a WebSocket API. The only asynchronous / event-style
+    transport documented in Letta's OpenAPI spec
+    (https://raw.githubusercontent.com/letta-ai/letta/main/fern/openapi.json)
+    is **HTTP Server-Sent Events (SSE)**, returned as `text/event-stream` from
+    `POST /v1/agents/{agent_id}/messages` when the request body sets
+    `stream_steps` (or the legacy, now-deprecated `POST
+    /v1/agents/{agent_id}/messages/stream` endpoint). The OpenAI-compatible
+    `POST /v1/chat/completions` endpoint streams the same way when
+    `stream: true` is set. SSE is a one-way, server-to-client HTTP streaming
+    channel; it is **not** WebSocket.
+
+    Each SSE `data:` line carries one JSON-serialized Letta message object -
+    `reasoning_message`, `assistant_message`, `tool_call_message`,
+    `tool_return_message`, a periodic `ping` keep-alive, or (when
+    `stream_tokens` and usage reporting are requested) a final usage
+    statistics object - followed by a literal `data: [DONE]` terminator.
+
+    This AsyncAPI document models only the streamed events. The request body
+    itself (agent_id, messages, stream_steps, stream_tokens, etc.) is modeled
+    in the companion OpenAPI document at `openapi/letta-ai-openapi.yml`.
+  contact:
+    name: API Evangelist
+    email: kin@apievangelist.com
+    url: https://apievangelist.com
+  license:
+    name: API documentation - Letta Terms of Service
+    url: https://www.letta.com/terms-of-service
+  x-transport-notes:
+    transport: HTTP Server-Sent Events (SSE)
+    protocol: https
+    direction: server-to-client (one-way)
+    mediaType: text/event-stream
+    triggeredBy: 'POST https://api.letta.com/v1/agents/{agent_id}/messages with request body { "stream_steps": true }'
+    terminator: 'data: [DONE]'
+    notWebSocket: true
+    source: https://raw.githubusercontent.com/letta-ai/letta/main/fern/openapi.json
+defaultContentType: text/event-stream
+servers:
+  lettaCloud:
+    url: api.letta.com/v1
+    protocol: https
+    description: |
+      Letta Cloud's REST base. Agent message streaming is delivered as HTTP
+      Server-Sent Events over this base when `stream_steps: true` (and
+      optionally `stream_tokens: true`) is set on the JSON request body.
+      AsyncAPI 2.6 does not define a dedicated SSE protocol identifier;
+      `https` is used here and the SSE transport is documented in
+      `info.x-transport-notes` and on each channel.
+    security:
+      - bearerAuth: []
+channels:
+  /agents/{agent_id}/messages:
+    parameters:
+      agent_id:
+        description: The ID of the agent, in the format `agent-<uuid4>`.
+        schema:
+          type: string
+    description: |
+      Agent message SSE stream. The client opens this channel by issuing
+      `POST /agents/{agent_id}/messages` with `Content-Type: application/json`
+      and a JSON body containing `stream_steps: true` (add `stream_tokens: true`
+      to additionally stream partial assistant-message tokens). The server
+      responds with `Content-Type: text/event-stream` and emits an ordered
+      sequence of `data:` lines, each carrying one JSON-serialized Letta
+      message, followed by a final `data: [DONE]` line.
+    bindings:
+      http:
+        type: request
+        method: POST
+        bindingVersion: '0.3.0'
+      x-sse:
+        mediaType: text/event-stream
+        eventField: 'data'
+        terminator: '[DONE]'
+    subscribe:
+      operationId: streamAgentMessages
+      summary: Subscribe to streamed agent turn events (SSE).
+      description: |
+        After `POST /agents/{agent_id}/messages` is issued with
+        `stream_steps: true`, the server emits an ordered sequence of SSE
+        `data:` events representing the agent's reasoning, tool calls, tool
+        results, and final assistant reply for the turn, interleaved with
+        periodic `ping` keep-alives, and terminated by the literal sentinel
+        `[DONE]`.
+      bindings:
+        http:
+          type: response
+          bindingVersion: '0.3.0'
+      message:
+        oneOf:
+          - $ref: '#/components/messages/ReasoningMessage'
+          - $ref: '#/components/messages/ToolCallMessage'
+          - $ref: '#/components/messages/ToolReturnMessage'
+          - $ref: '#/components/messages/AssistantMessage'
+          - $ref: '#/components/messages/LettaPing'
+          - $ref: '#/components/messages/UsageStatistics'
+          - $ref: '#/components/messages/StreamDone'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: 'Letta API key'
+      description: |
+        Standard Letta bearer token, created at https://app.letta.com/api-keys.
+        Set the `Authorization: Bearer <LETTA_API_KEY>` header on the
+        `POST /agents/{agent_id}/messages` request that opens the SSE stream.
+  messages:
+    ReasoningMessage:
+      name: ReasoningMessage
+      title: Agent reasoning step
+      summary: The agent's internal chain-of-thought for the current step, when reasoning is enabled and visible.
+      contentType: application/json
+      description: |
+        Sent as `data: {json}\n\n` on the SSE stream. `message_type` is always
+        the literal string `reasoning_message`.
+      payload:
+        $ref: '#/components/schemas/ReasoningMessage'
+      examples:
+        - name: reasoningStep
+          summary: Agent reasoning before acting
+          payload:
+            id: message-6f7e8d9c-0000-4a1b-9c2d-3e4f5a6b7c8d
+            date: '2026-07-02T18:04:11.000Z'
+            message_type: reasoning_message
+            reasoning: The user is asking about their prior order, I should check archival memory first.
+            source: reasoner_model
+    ToolCallMessage:
+      name: ToolCallMessage
+      title: Agent tool call
+      summary: A tool invocation the agent is making as part of this step.
+      contentType: application/json
+      description: |
+        Sent as `data: {json}\n\n` on the SSE stream. `message_type` is always
+        the literal string `tool_call_message`.
+      payload:
+        $ref: '#/components/schemas/ToolCallMessage'
+      examples:
+        - name: archivalSearch
+          summary: Agent calling the archival_memory_search tool
+          payload:
+            id: message-1a2b3c4d-0000-4a1b-9c2d-3e4f5a6b7c8d
+            date: '2026-07-02T18:04:11.500Z'
+            message_type: tool_call_message
+            tool_call:
+              name: archival_memory_search
+              arguments: '{"query": "prior order"}'
+              tool_call_id: call-9f8e7d6c
+    ToolReturnMessage:
+      name: ToolReturnMessage
+      title: Agent tool result
+      summary: The result returned by a tool the agent called.
+      contentType: application/json
+      description: |
+        Sent as `data: {json}\n\n` on the SSE stream. `message_type` is always
+        the literal string `tool_return_message`.
+      payload:
+        $ref: '#/components/schemas/ToolReturnMessage'
+      examples:
+        - name: archivalSearchResult
+          summary: Result of the archival_memory_search call
+          payload:
+            id: message-2b3c4d5e-0000-4a1b-9c2d-3e4f5a6b7c8d
+            date: '2026-07-02T18:04:11.900Z'
+            message_type: tool_return_message
+            tool_return: 'Found 1 matching passage.'
+            status: success
+            tool_call_id: call-9f8e7d6c
+    AssistantMessage:
+      name: AssistantMessage
+      title: Agent reply to the user
+      summary: The agent's user-facing reply content for this turn. Streamed token-by-token when stream_tokens is set.
+      contentType: application/json
+      description: |
+        Sent as `data: {json}\n\n` on the SSE stream. `message_type` is always
+        the literal string `assistant_message`.
+      payload:
+        $ref: '#/components/schemas/AssistantMessage'
+      examples:
+        - name: assistantReply
+          summary: Final assistant-facing reply
+          payload:
+            id: message-3c4d5e6f-0000-4a1b-9c2d-3e4f5a6b7c8d
+            date: '2026-07-02T18:04:12.400Z'
+            message_type: assistant_message
+            content: 'Your prior order shipped on June 30th.'
+    LettaPing:
+      name: LettaPing
+      title: Keep-alive ping
+      summary: A periodic keep-alive event so the SSE connection does not time out during long-running turns.
+      contentType: application/json
+      description: |
+        Sent as `data: {json}\n\n` on the SSE stream. `message_type` is always
+        the literal string `ping`. Carries no meaningful content beyond `id`
+        and `date`.
+      payload:
+        $ref: '#/components/schemas/LettaPing'
+      examples:
+        - name: keepAlive
+          summary: Keep-alive ping during a long-running tool call
+          payload:
+            id: message-ping-0001
+            date: '2026-07-02T18:04:20.000Z'
+            message_type: ping
+    UsageStatistics:
+      name: UsageStatistics
+      title: End-of-turn usage statistics
+      summary: Optional final chunk reporting token and step usage for the completed turn.
+      contentType: application/json
+      description: |
+        Sent as `data: {json}\n\n` on the SSE stream, immediately before
+        `data: [DONE]`, when usage reporting applies to the request.
+      payload:
+        $ref: '#/components/schemas/LettaUsageStatistics'
+      examples:
+        - name: turnUsage
+          summary: Usage for the completed turn
+          payload:
+            message_type: usage_statistics
+            completion_tokens: 128
+            prompt_tokens: 512
+            total_tokens: 640
+            step_count: 3
+    StreamDone:
+      name: StreamDone
+      title: Stream terminator
+      summary: |
+        The literal SSE event `data: [DONE]` that marks end of stream. Not
+        JSON; the payload is the string `[DONE]`.
+      contentType: text/plain
+      description: |
+        Clients must stop reading the stream when this sentinel is observed.
+      payload:
+        $ref: '#/components/schemas/StreamDoneSentinel'
+      examples:
+        - name: done
+          summary: End-of-stream sentinel
+          payload: '[DONE]'
+  schemas:
+    StreamDoneSentinel:
+      type: string
+      enum:
+        - '[DONE]'
+      description: |
+        End-of-stream sentinel. The full SSE line is `data: [DONE]`. The
+        payload value modeled here is the string literal `[DONE]`.
+    ReasoningMessage:
+      type: object
+      description: The agent's internal reasoning for the current step.
+      required:
+        - id
+        - date
+        - reasoning
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date-time
+        message_type:
+          type: string
+          enum:
+            - reasoning_message
+          default: reasoning_message
+        reasoning:
+          type: string
+        source:
+          type: string
+          description: Which model/pass produced this reasoning (for example, a dedicated reasoner model).
+        signature:
+          type: string
+          nullable: true
+          description: Optional provider-signed signature for the reasoning content.
+    ToolCallMessage:
+      type: object
+      required:
+        - id
+        - date
+        - tool_call
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date-time
+        message_type:
+          type: string
+          enum:
+            - tool_call_message
+          default: tool_call_message
+        tool_call:
+          type: object
+          properties:
+            name:
+              type: string
+            arguments:
+              type: string
+              description: JSON-encoded arguments the model generated for the call.
+            tool_call_id:
+              type: string
+    ToolReturnMessage:
+      type: object
+      required:
+        - id
+        - date
+        - tool_return
+        - status
+        - tool_call_id
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date-time
+        message_type:
+          type: string
+          enum:
+            - tool_return_message
+          default: tool_return_message
+        tool_return:
+          type: string
+        status:
+          type: string
+          enum:
+            - success
+            - error
+        tool_call_id:
+          type: string
+        stdout:
+          type: array
+          items:
+            type: string
+        stderr:
+          type: array
+          items:
+            type: string
+    AssistantMessage:
+      type: object
+      required:
+        - id
+        - date
+        - content
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date-time
+        message_type:
+          type: string
+          enum:
+            - assistant_message
+          default: assistant_message
+        content:
+          type: string
+          description: The agent's user-facing reply text (or a token fragment, when stream_tokens is set).
+    LettaPing:
+      type: object
+      required:
+        - id
+        - date
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date-time
+        message_type:
+          type: string
+          enum:
+            - ping
+          default: ping
+          description: Keep-alive event to prevent SSE streams from timing out during long-running requests.
+    LettaUsageStatistics:
+      type: object
+      description: Token and step usage for a completed agent turn.
+      properties:
+        message_type:
+          type: string
+          enum:
+            - usage_statistics
+        completion_tokens:
+          type: integer
+        prompt_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+        step_count:
+          type: integer
+          description: Number of model-call steps the agent took to complete the turn.
+        cached_input_tokens:
+          type: integer
+        reasoning_tokens:
+          type: integer

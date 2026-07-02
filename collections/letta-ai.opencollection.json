@@ -1,0 +1,1072 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Letta API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Agents",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get a list of all agents.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/agents"
+          },
+          "docs": "Get a list of all agents."
+        },
+        {
+          "info": {
+            "name": "Create an agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/agents",
+            "body": {
+              "type": "json",
+              "data": "{\"name\": \"customer-support-agent\", \"model\": \"openai/gpt-4o\", \"embedding\": \"openai/text-embedding-3-small\", \"memory_blocks\": [{\"label\": \"persona\", \"value\": \"I am a helpful customer support agent.\"}]}"
+            }
+          },
+          "docs": "Create an agent."
+        },
+        {
+          "info": {
+            "name": "Retrieve an agent by ID.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/agents/:agent_id",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ]
+          },
+          "docs": "Retrieve an agent by ID."
+        },
+        {
+          "info": {
+            "name": "Modify an agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.letta.com/v1/agents/:agent_id",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{\"description\": \"Updated description\"}"
+            }
+          },
+          "docs": "Modify an agent."
+        },
+        {
+          "info": {
+            "name": "Delete an agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.letta.com/v1/agents/:agent_id",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ]
+          },
+          "docs": "Delete an agent."
+        },
+        {
+          "info": {
+            "name": "Export an agent as a portable agent file.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/agents/:agent_id/export",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ]
+          },
+          "docs": "Export an agent as a portable agent file."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Messages",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List an agent's message history.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/agents/:agent_id/messages",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ]
+          },
+          "docs": "List an agent's message history."
+        },
+        {
+          "info": {
+            "name": "Send a message to an agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/agents/:agent_id/messages",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{\"messages\": [{\"role\": \"user\", \"content\": \"What's the status of my order?\"}]}"
+            }
+          },
+          "docs": "Send a message to an agent."
+        },
+        {
+          "info": {
+            "name": "Send a message and stream the agent's response as SSE.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/agents/:agent_id/messages/stream",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{\"messages\": [{\"role\": \"user\", \"content\": \"What's the status of my order?\"}], \"stream_steps\": true}"
+            }
+          },
+          "docs": "Send a message and stream the agent's response as SSE."
+        },
+        {
+          "info": {
+            "name": "Cancel an in-flight run for an agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/agents/:agent_id/messages/cancel",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ]
+          },
+          "docs": "Cancel an in-flight run for an agent."
+        },
+        {
+          "info": {
+            "name": "Reset an agent's message history.",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.letta.com/v1/agents/:agent_id/reset-messages",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ]
+          },
+          "docs": "Reset an agent's message history."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Memory Blocks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List the core-memory blocks attached to an agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/agents/:agent_id/core-memory/blocks",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ]
+          },
+          "docs": "List the core-memory blocks attached to an agent."
+        },
+        {
+          "info": {
+            "name": "Retrieve a labeled core-memory block for an agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/agents/:agent_id/core-memory/blocks/:block_label",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              },
+              {
+                "name": "block_label",
+                "value": "",
+                "type": "path",
+                "description": "The block_label path parameter."
+              }
+            ]
+          },
+          "docs": "Retrieve a labeled core-memory block for an agent."
+        },
+        {
+          "info": {
+            "name": "Modify a core-memory block for an agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.letta.com/v1/agents/:agent_id/core-memory/blocks/:block_label",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              },
+              {
+                "name": "block_label",
+                "value": "",
+                "type": "path",
+                "description": "The block_label path parameter."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{\"value\": \"Updated memory content.\"}"
+            }
+          },
+          "docs": "Modify a core-memory block for an agent."
+        },
+        {
+          "info": {
+            "name": "List all standalone memory blocks.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/blocks"
+          },
+          "docs": "List all standalone memory blocks."
+        },
+        {
+          "info": {
+            "name": "Create a standalone memory block.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/blocks",
+            "body": {
+              "type": "json",
+              "data": "{\"label\": \"human\", \"value\": \"The user's name is Alex.\"}"
+            }
+          },
+          "docs": "Create a standalone memory block."
+        },
+        {
+          "info": {
+            "name": "Delete a memory block.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.letta.com/v1/blocks/:block_id",
+            "params": [
+              {
+                "name": "block_id",
+                "value": "",
+                "type": "path",
+                "description": "The block_id path parameter."
+              }
+            ]
+          },
+          "docs": "Delete a memory block."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Archival Memory",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List archives.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/archives"
+          },
+          "docs": "List archives."
+        },
+        {
+          "info": {
+            "name": "Create an archive.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/archives",
+            "body": {
+              "type": "json",
+              "data": "{\"name\": \"support-history\"}"
+            }
+          },
+          "docs": "Create an archive."
+        },
+        {
+          "info": {
+            "name": "Create a passage in an archive.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/archives/:archive_id/passages",
+            "params": [
+              {
+                "name": "archive_id",
+                "value": "",
+                "type": "path",
+                "description": "The archive_id path parameter."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{\"text\": \"Customer prefers email contact.\"}"
+            }
+          },
+          "docs": "Create a passage in an archive."
+        },
+        {
+          "info": {
+            "name": "Search an agent's archival memory.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/agents/:agent_id/archival-memory/search",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ]
+          },
+          "docs": "Search an agent's archival memory."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Tools",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List tools.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/tools"
+          },
+          "docs": "List tools."
+        },
+        {
+          "info": {
+            "name": "Create a tool from Python source.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/tools",
+            "body": {
+              "type": "json",
+              "data": "{\"source_code\": \"def get_weather(city: str) -> str:\\n    \\\"\\\"\\\"Get the weather for a city.\\\"\\\"\\\"\\n    return f\\\"Sunny in {city}\\\"\"}"
+            }
+          },
+          "docs": "Create a tool from Python source."
+        },
+        {
+          "info": {
+            "name": "Run a tool from raw source without attaching it to an agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/tools/run",
+            "body": {
+              "type": "json",
+              "data": "{\"source_code\": \"def add(a: int, b: int) -> int:\\n    return a + b\", \"args\": {\"a\": 2, \"b\": 3}}"
+            }
+          },
+          "docs": "Run a tool from raw source without attaching it to an agent."
+        },
+        {
+          "info": {
+            "name": "Delete a tool.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.letta.com/v1/tools/:tool_id",
+            "params": [
+              {
+                "name": "tool_id",
+                "value": "",
+                "type": "path",
+                "description": "The tool_id path parameter."
+              }
+            ]
+          },
+          "docs": "Delete a tool."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "MCP Servers",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List configured MCP servers.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/mcp-servers"
+          },
+          "docs": "List configured MCP servers."
+        },
+        {
+          "info": {
+            "name": "Register a new MCP server.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/mcp-servers",
+            "body": {
+              "type": "json",
+              "data": "{\"server_name\": \"internal-search\", \"type\": \"streamable_http\", \"server_url\": \"https://mcp.example.com/mcp\"}"
+            }
+          },
+          "docs": "Register a new MCP server."
+        },
+        {
+          "info": {
+            "name": "List the tools exposed by an MCP server.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/mcp-servers/:mcp_server_id/tools",
+            "params": [
+              {
+                "name": "mcp_server_id",
+                "value": "",
+                "type": "path",
+                "description": "The mcp_server_id path parameter."
+              }
+            ]
+          },
+          "docs": "List the tools exposed by an MCP server."
+        },
+        {
+          "info": {
+            "name": "Delete an MCP server.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.letta.com/v1/mcp-servers/:mcp_server_id",
+            "params": [
+              {
+                "name": "mcp_server_id",
+                "value": "",
+                "type": "path",
+                "description": "The mcp_server_id path parameter."
+              }
+            ]
+          },
+          "docs": "Delete an MCP server."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Sources and Files",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List data sources.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/sources"
+          },
+          "docs": "List data sources."
+        },
+        {
+          "info": {
+            "name": "Create a data source.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/sources",
+            "body": {
+              "type": "json",
+              "data": "{\"name\": \"product-docs\"}"
+            }
+          },
+          "docs": "Create a data source."
+        },
+        {
+          "info": {
+            "name": "Upload a file to a data source.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/sources/:source_id/upload",
+            "params": [
+              {
+                "name": "source_id",
+                "value": "",
+                "type": "path",
+                "description": "The source_id path parameter."
+              }
+            ]
+          },
+          "docs": "Upload a file to a data source."
+        },
+        {
+          "info": {
+            "name": "List the files in a data source.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/sources/:source_id/files",
+            "params": [
+              {
+                "name": "source_id",
+                "value": "",
+                "type": "path",
+                "description": "The source_id path parameter."
+              }
+            ]
+          },
+          "docs": "List the files in a data source."
+        },
+        {
+          "info": {
+            "name": "Delete a data source.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.letta.com/v1/sources/:source_id",
+            "params": [
+              {
+                "name": "source_id",
+                "value": "",
+                "type": "path",
+                "description": "The source_id path parameter."
+              }
+            ]
+          },
+          "docs": "Delete a data source."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Identities",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List identities.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/identities"
+          },
+          "docs": "List identities."
+        },
+        {
+          "info": {
+            "name": "Create an identity.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/identities",
+            "body": {
+              "type": "json",
+              "data": "{\"identifier_key\": \"user-42\", \"name\": \"Alex\", \"identity_type\": \"user\"}"
+            }
+          },
+          "docs": "Create an identity."
+        },
+        {
+          "info": {
+            "name": "Attach an identity to an agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.letta.com/v1/agents/:agent_id/identities/attach/:identity_id",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              },
+              {
+                "name": "identity_id",
+                "value": "",
+                "type": "path",
+                "description": "The identity_id path parameter."
+              }
+            ]
+          },
+          "docs": "Attach an identity to an agent."
+        },
+        {
+          "info": {
+            "name": "Delete an identity.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.letta.com/v1/identities/:identity_id",
+            "params": [
+              {
+                "name": "identity_id",
+                "value": "",
+                "type": "path",
+                "description": "The identity_id path parameter."
+              }
+            ]
+          },
+          "docs": "Delete an identity."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Multi-Agent Groups",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List multi-agent groups.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/groups"
+          },
+          "docs": "List multi-agent groups."
+        },
+        {
+          "info": {
+            "name": "Create a multi-agent group.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/groups",
+            "body": {
+              "type": "json",
+              "data": "{\"agent_ids\": [\"agent-aaa\", \"agent-bbb\"], \"manager_config\": {\"manager_type\": \"round_robin\"}}"
+            }
+          },
+          "docs": "Create a multi-agent group."
+        },
+        {
+          "info": {
+            "name": "List a group's combined message history.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/groups/:group_id/messages",
+            "params": [
+              {
+                "name": "group_id",
+                "value": "",
+                "type": "path",
+                "description": "The group_id path parameter."
+              }
+            ]
+          },
+          "docs": "List a group's combined message history."
+        },
+        {
+          "info": {
+            "name": "Delete a multi-agent group.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.letta.com/v1/groups/:group_id",
+            "params": [
+              {
+                "name": "group_id",
+                "value": "",
+                "type": "path",
+                "description": "The group_id path parameter."
+              }
+            ]
+          },
+          "docs": "Delete a multi-agent group."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Models and Providers",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List available LLM models.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/models"
+          },
+          "docs": "List available LLM models."
+        },
+        {
+          "info": {
+            "name": "List available embedding models.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/models/embedding"
+          },
+          "docs": "List available embedding models."
+        },
+        {
+          "info": {
+            "name": "List configured model providers.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/providers"
+          },
+          "docs": "List configured model providers."
+        },
+        {
+          "info": {
+            "name": "Register a BYOK model provider.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/providers",
+            "body": {
+              "type": "json",
+              "data": "{\"name\": \"my-anthropic\", \"provider_type\": \"anthropic\", \"api_key\": \"sk-ant-...\"}"
+            }
+          },
+          "docs": "Register a BYOK model provider."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Runs, Jobs and Steps",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List runs.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/runs"
+          },
+          "docs": "List runs."
+        },
+        {
+          "info": {
+            "name": "Retrieve a run.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/runs/:run_id",
+            "params": [
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path",
+                "description": "The run_id path parameter."
+              }
+            ]
+          },
+          "docs": "Retrieve a run."
+        },
+        {
+          "info": {
+            "name": "Retrieve usage statistics for a run.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/runs/:run_id/usage",
+            "params": [
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path",
+                "description": "The run_id path parameter."
+              }
+            ]
+          },
+          "docs": "Retrieve usage statistics for a run."
+        },
+        {
+          "info": {
+            "name": "List background jobs.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/jobs"
+          },
+          "docs": "List background jobs."
+        },
+        {
+          "info": {
+            "name": "Cancel a background job.",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.letta.com/v1/jobs/:job_id/cancel",
+            "params": [
+              {
+                "name": "job_id",
+                "value": "",
+                "type": "path",
+                "description": "The job_id path parameter."
+              }
+            ]
+          },
+          "docs": "Cancel a background job."
+        },
+        {
+          "info": {
+            "name": "List steps.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/steps"
+          },
+          "docs": "List steps."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Agent Templates",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List agent templates (Cloud-only).",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.letta.com/v1/templates"
+          },
+          "docs": "List agent templates (Cloud-only)."
+        },
+        {
+          "info": {
+            "name": "Create new agents from a template version (Cloud-only).",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/templates/:project_id/:template_version/agents",
+            "params": [
+              {
+                "name": "project_id",
+                "value": "",
+                "type": "path",
+                "description": "The project_id path parameter."
+              },
+              {
+                "name": "template_version",
+                "value": "",
+                "type": "path",
+                "description": "The template_version path parameter."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{\"agent_name\": \"from-template-agent\"}"
+            }
+          },
+          "docs": "Create new agents from a template version (Cloud-only)."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Chat Completions",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "OpenAI-compatible chat completion routed to a Letta agent.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/chat/completions",
+            "body": {
+              "type": "json",
+              "data": "{\"model\": \"agent-123e4567-e89b-42d3-8456-426614174000\", \"messages\": [{\"role\": \"user\", \"content\": \"Hello\"}]}"
+            }
+          },
+          "docs": "OpenAI-compatible chat completion routed to a Letta agent."
+        },
+        {
+          "info": {
+            "name": "OpenAI-compatible chat completion tuned for low-latency voice agents.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.letta.com/v1/voice-beta/:agent_id/chat/completions",
+            "params": [
+              {
+                "name": "agent_id",
+                "value": "",
+                "type": "path",
+                "description": "The agent_id path parameter."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{\"messages\": [{\"role\": \"user\", \"content\": \"Hello\"}]}"
+            }
+          },
+          "docs": "OpenAI-compatible chat completion tuned for low-latency voice agents."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

@@ -1,0 +1,172 @@
+specification: API Commons Plans
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/Plans
+provider: Letta
+providerId: letta-ai
+created: '2026-07-02'
+modified: '2026-07-02'
+reconciled: false
+tags:
+- AI
+- Agents
+- LLM
+- Memory
+- Plans
+description: >-
+  Letta has separate Personal (chat UI / Letta Auto) and Developer (API)
+  pricing tracks, plus open-source self-hosting. The Free tier supports a
+  limited number of agents with bring-your-own model API keys. The Pro
+  personal plan is a flat $20/month subscription with a Letta Auto quota. The
+  Developer API plan is $20/month base plus metered usage - per active agent
+  per month, plus per-second tool execution time - on top of pass-through,
+  pay-as-you-go LLM usage from the configured model provider. Enterprise is
+  custom/negotiated. The core Letta server is open source (Apache-2.0) and
+  free to self-host, in which case you provide your own compute and model
+  provider API keys.
+notes: >-
+  Exact current dollar amounts should be reconciled against
+  https://docs.letta.com/guides/build-with-letta/pricing and
+  https://www.letta.com/pricing before use in a proposal or contract - Letta's
+  usage-based components (per-agent and per-second tool execution) are billed
+  in addition to the base subscription and are separate from whatever the
+  underlying LLM provider charges for tokens.
+sources:
+- https://www.letta.com/pricing
+- https://docs.letta.com/guides/build-with-letta/pricing
+- https://docs.letta.com/guides/get-started/intro
+- https://github.com/letta-ai/letta
+plans:
+- id: letta-free
+  name: Free
+  type: free
+  description: >-
+    Free tier for evaluation, supporting a limited number of stateful agents
+    with bring-your-own model provider API keys.
+  entries:
+  - label: Agents
+    name: free_agents
+    type: usage
+    metric: agents
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: $0 (limited number of agents)
+    userMultiplied: false
+  elements:
+  - name: Bring Your Own API Keys
+  - name: Limited Letta Auto Usage
+- id: letta-pro
+  name: Pro (Personal)
+  type: flat
+  description: >-
+    Flat-rate personal plan for the Letta chat experience with a weekly and
+    monthly Letta Auto quota and pay-as-you-go overage, supporting up to
+    roughly 20 stateful agents.
+  entries:
+  - label: Monthly Subscription
+    name: pro_subscription
+    type: flat
+    metric: subscription
+    limit: 1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: $20/month
+    userMultiplied: false
+  elements:
+  - name: Up to ~20 Agents
+  - name: Letta Auto Weekly and Monthly Quota
+  - name: Pay-As-You-Go Overage
+- id: letta-api
+  name: API (Developer)
+  type: usage
+  description: >-
+    Developer plan for programmatic access via API key. Unlimited agents,
+    billed on a base subscription plus metered active-agent and tool-execution
+    usage, with pay-as-you-go LLM usage passed through from the configured
+    model provider.
+  entries:
+  - label: Base Subscription
+    name: api_subscription
+    type: flat
+    metric: subscription
+    limit: 1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: $20/month
+    userMultiplied: false
+  - label: Active Agents
+    name: api_active_agents
+    type: usage
+    metric: agents
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: $0.10 per active agent per month
+    userMultiplied: false
+  - label: Tool Execution Time
+    name: api_tool_execution
+    type: usage
+    metric: seconds
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: $0.00015 per second of tool execution
+    userMultiplied: false
+  elements:
+  - name: Unlimited Agents
+  - name: API Key Authentication
+  - name: Pay-As-You-Go LLM Usage (pass-through)
+- id: letta-enterprise
+  name: Enterprise
+  type: enterprise
+  description: >-
+    Custom plan for high-volume or regulated deployments, with volume-based
+    pricing, increased quotas, role-based access control, SAML/OIDC SSO, and
+    dedicated support.
+  entries:
+  - label: Enterprise Agreement
+    name: enterprise
+    type: flat
+    metric: contract
+    limit: -1
+    timeFrame: year
+    geo: global
+    unit: 1
+    price: contact sales
+    userMultiplied: false
+  elements:
+  - name: Volume-Based Pricing
+  - name: SAML / OIDC SSO
+  - name: Role-Based Access Control
+  - name: Dedicated Support
+- id: letta-open-source
+  name: Open Source (Self-Hosted)
+  type: free
+  description: >-
+    The core Letta server is Apache-2.0 licensed and free to self-host via
+    Docker or from source, using the same OpenAPI-documented REST interface as
+    Letta Cloud. You supply your own compute and your own model provider API
+    keys.
+  entries:
+  - label: Self-Hosted Usage
+    name: self_hosted_usage
+    type: usage
+    metric: requests
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: free (self-hosted; you provide infrastructure and model provider keys)
+    userMultiplied: false
+  elements:
+  - name: Full REST API
+  - name: Bring Your Own Model Providers
+  - name: Docker and Source Deployment
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

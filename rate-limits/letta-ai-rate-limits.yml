@@ -1,0 +1,75 @@
+specification: API Commons Rate Limits
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/RateLimits
+provider: Letta
+providerId: letta-ai
+created: '2026-07-02'
+modified: '2026-07-02'
+reconciled: false
+tags:
+- AI
+- Agents
+- LLM
+- Rate Limiting
+- Quotas
+description: >-
+  Letta does not publish fixed numeric per-minute or per-second request rate
+  limits for the Letta Cloud REST API. Cloud usage is governed instead by
+  plan-level constraints - the number of agents allowed on Free and Pro, and
+  metered active-agent and tool-execution usage on the API plan - plus
+  whatever throughput/rate limits the underlying LLM model provider (OpenAI,
+  Anthropic, Google, etc.) enforces on the model calls an agent makes. Each
+  agent also processes messages sequentially, so concurrent requests to the
+  same agent are explicitly discouraged rather than rate-limited by the
+  server. Self-hosted deployments are bound only by their own infrastructure
+  and by the rate limits of whichever model providers they configure.
+notes: >-
+  No documented numeric request-rate ceiling was found on docs.letta.com or
+  letta.com as of the review date. Verify current Cloud limits with Letta
+  directly for production capacity planning, and budget for the rate limits
+  of whichever LLM and embedding providers are attached to your agents.
+sources:
+- https://docs.letta.com/guides/get-started/intro
+- https://docs.letta.com/guides/build-with-letta/pricing
+- https://raw.githubusercontent.com/letta-ai/letta/main/fern/openapi.json
+- https://github.com/letta-ai/letta
+responseCodes:
+  throttled: 429
+limits:
+- name: Cloud API Requests
+  scope: account
+  metric: requests
+  limit: not published
+  notes: No fixed numeric request-rate limit is documented for the Letta Cloud REST API.
+- name: Concurrent Messages Per Agent
+  scope: agent
+  metric: requests
+  limit: '1'
+  notes: >-
+    Letta's own API docs warn that each agent processes messages sequentially
+    and that sending concurrent requests to the same agent can produce
+    undefined behavior; callers should wait for one request to complete (or
+    use separate agents) rather than parallelize against a single agent.
+- name: Free / Pro Agent Count
+  scope: account
+  metric: agents
+  limit: per plan (Free is limited; Pro is roughly 20)
+  notes: Personal plans cap the number of concurrently active stateful agents rather than request rate.
+- name: Underlying Model Provider Limits
+  scope: model provider
+  metric: requests/tokens
+  limit: set by the configured LLM/embedding provider
+  notes: Each agent's message and embedding calls are ultimately bound by the rate limits of its configured model provider (OpenAI, Anthropic, Google, self-hosted, etc.).
+- name: Self-Hosted Throughput
+  scope: deployment
+  metric: requests
+  limit: hardware-bound
+  notes: Self-hosted Letta servers are limited only by their own infrastructure and by their configured model providers.
+policies:
+- name: Sequential Agent Processing
+  description: Concurrent requests to the same agent are not supported; each agent processes one message at a time and later requests should wait for the prior one to complete.
+- name: Backoff Strategy
+  description: Clients should implement exponential backoff with jitter and honor Retry-After on 429 responses returned by Letta or by an upstream model provider.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

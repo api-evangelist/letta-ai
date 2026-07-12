@@ -1,0 +1,14 @@
+generated: '2026-07-11'
+method: derived
+source: openapi/letta-ai-openapi.yml
+summary:
+  types:
+  - http
+schemes:
+- name: bearerAuth
+  type: http
+  scheme: bearer
+  description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization:
+    Bearer YOUR_API_KEY`.'
+  sources:
+  - openapi/letta-ai-openapi.yml

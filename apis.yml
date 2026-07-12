@@ -283,6 +283,10 @@ apis:
     to a Letta agent, plus a companion voice-beta chat completions endpoint
     tuned for low-latency voice agent integrations.
 common:
+- type: DomainSecurity
+  url: security/letta-ai-domain-security.yml
+- type: Authentication
+  url: authentication/letta-ai-authentication.yml
 - type: GitHubOrganization
   url: https://github.com/letta-ai
 - type: LinkedIn
@@ -297,6 +301,8 @@ common:
   url: rate-limits/letta-ai-rate-limits.yml
 - type: FinOps
   url: finops/letta-ai-finops.yml
+- url: https://www.letta.com/blog
+  type: Blog
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com

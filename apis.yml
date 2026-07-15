@@ -283,6 +283,8 @@ apis:
     to a Letta agent, plus a companion voice-beta chat completions endpoint
     tuned for low-latency voice agent integrations.
 common:
+- type: AgenticAccess
+  url: agentic-access/letta-ai-agentic-access.yml
 - type: DomainSecurity
   url: security/letta-ai-domain-security.yml
 - type: Authentication

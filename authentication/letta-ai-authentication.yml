@@ -9,6 +9,6 @@ schemes:
   type: http
   scheme: bearer
   description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization:
-    Bearer YOUR_API_KEY`.'
+    Bearer [example key]`.'
   sources:
   - openapi/letta-ai-openapi.yml

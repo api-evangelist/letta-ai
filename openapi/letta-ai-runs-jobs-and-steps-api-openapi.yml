@@ -1,0 +1,1085 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates Runs, Jobs and Steps API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Runs, Jobs and Steps
+  description: Asynchronous execution history behind agent messages.
+paths:
+  /v1/runs/:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: List Runs
+      description: List all runs.
+      parameters:
+      - name: agent_id
+        in: query
+        required: false
+        description: The unique identifier of the agent associated with the run.
+        schema:
+          type: string
+      - name: agent_ids
+        in: query
+        required: false
+        description: The unique identifiers of the agents associated with the run. Deprecated in favor of agent_id field.
+        schema:
+          type: string
+      - name: statuses
+        in: query
+        required: false
+        description: Filter runs by status. Can specify multiple statuses.
+        schema:
+          type: string
+      - name: background
+        in: query
+        required: false
+        description: If True, filters for runs that were created in background mode.
+        schema:
+          type: string
+      - name: stop_reason
+        in: query
+        required: false
+        description: Filter runs by stop reason.
+        schema:
+          type: string
+      - name: conversation_id
+        in: query
+        required: false
+        description: Filter runs by conversation ID.
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Run ID cursor for pagination. Returns runs that come before this run ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Run ID cursor for pagination. Returns runs that come after this run ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of runs to return
+        schema:
+          type: string
+          default: 100
+      - name: order
+        in: query
+        required: false
+        description: Sort order for runs by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: active
+        in: query
+        required: false
+        description: Filter for active runs.
+        schema:
+          type: boolean
+          default: false
+      - name: ascending
+        in: query
+        required: false
+        description: Whether to sort agents oldest to newest (True) or newest to oldest (False, default). Deprecated in favor of order field.
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Run'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/runs/active:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: List Active Runs
+      description: List all active runs.
+      parameters:
+      - name: agent_id
+        in: query
+        required: false
+        description: The unique identifier of the agent associated with the run.
+        schema:
+          type: string
+      - name: background
+        in: query
+        required: false
+        description: If True, filters for runs that were created in background mode.
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Run'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/runs/{run_id}:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Retrieve Run
+      description: Get the status of a run.
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Delete Run
+      description: Delete a run by its run_id.
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/runs/{run_id}/messages:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: List Messages For Run
+      description: Get response messages associated with a run.
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Message ID cursor for pagination. Returns messages that come before this message ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Message ID cursor for pagination. Returns messages that come after this message ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of messages to return
+        schema:
+          type: string
+          default: 100
+      - name: order
+        in: query
+        required: false
+        description: Sort order for messages by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: asc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LettaMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/runs/{run_id}/metrics:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Retrieve Metrics For Run
+      description: Get run metrics by run ID.
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/runs/{run_id}/steps:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: List Steps For Run
+      description: Get steps associated with a run with filtering options.
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Cursor for pagination
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Cursor for pagination
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of messages to return
+        schema:
+          type: string
+          default: 100
+      - name: order
+        in: query
+        required: false
+        description: Sort order for steps by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Step'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/runs/{run_id}/stream:
+    post:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Retrieve Stream For Run
+      description: Retrieve Stream For Run
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+            text/event-stream:
+              description: Server-Sent Events stream
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/runs/{run_id}/trace:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Retrieve Trace For Run
+      description: Retrieve OTEL trace spans for a run.
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of spans to return
+        schema:
+          type: integer
+          default: 1000
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/runs/{run_id}/usage:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Retrieve Usage For Run
+      description: Get usage statistics for a run.
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/jobs/:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: List Jobs
+      description: List all jobs.
+      parameters:
+      - name: source_id
+        in: query
+        required: false
+        description: 'Deprecated: Use `folder_id` parameter instead. Only list jobs associated with the source.'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Job ID cursor for pagination. Returns jobs that come before this job ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Job ID cursor for pagination. Returns jobs that come after this job ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of jobs to return
+        schema:
+          type: string
+          default: 100
+      - name: order
+        in: query
+        required: false
+        description: Sort order for jobs by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: active
+        in: query
+        required: false
+        description: Filter for active jobs.
+        schema:
+          type: boolean
+          default: false
+      - name: ascending
+        in: query
+        required: false
+        description: Whether to sort jobs oldest to newest (True, default) or newest to oldest (False). Deprecated in favor of order field.
+        schema:
+          type: boolean
+          default: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/jobs/active:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: List Active Jobs
+      description: List all active jobs.
+      parameters:
+      - name: source_id
+        in: query
+        required: false
+        description: 'Deprecated: Use `folder_id` parameter instead. Only list jobs associated with the source.'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Cursor for pagination
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Cursor for pagination
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Limit for pagination
+        schema:
+          type: string
+          default: 50
+      - name: ascending
+        in: query
+        required: false
+        description: Whether to sort jobs oldest to newest (True, default) or newest to oldest (False)
+        schema:
+          type: boolean
+          default: true
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/jobs/{job_id}:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Retrieve Job
+      description: Get the status of a job.
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        description: The ID of the job in the format 'job-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Delete Job
+      description: Delete a job by its job_id.
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        description: The ID of the job in the format 'job-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/jobs/{job_id}/cancel:
+    patch:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Cancel Job
+      description: Cancel a job by its job_id.
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        description: The ID of the job in the format 'job-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/steps/:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: List Steps
+      description: List steps with optional pagination and date filters.
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: Return steps before this step ID
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Return steps after this step ID
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of steps to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for steps by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: start_date
+        in: query
+        required: false
+        description: Return steps after this ISO datetime (e.g. "2025-01-29T15:01:19-08:00")
+        schema:
+          type: string
+      - name: end_date
+        in: query
+        required: false
+        description: Return steps before this ISO datetime (e.g. "2025-01-29T15:01:19-08:00")
+        schema:
+          type: string
+      - name: model
+        in: query
+        required: false
+        description: Filter by the name of the model used for the step
+        schema:
+          type: string
+      - name: agent_id
+        in: query
+        required: false
+        description: Filter by the ID of the agent that performed the step
+        schema:
+          type: string
+      - name: trace_ids
+        in: query
+        required: false
+        description: Filter by trace ids returned by the server
+        schema:
+          type: string
+      - name: feedback
+        in: query
+        required: false
+        description: Filter by feedback
+        schema:
+          type: string
+      - name: has_feedback
+        in: query
+        required: false
+        description: Filter by whether steps have feedback (true) or not (false)
+        schema:
+          type: string
+      - name: tags
+        in: query
+        required: false
+        description: Filter by tags
+        schema:
+          type: string
+      - name: project_id
+        in: query
+        required: false
+        description: Filter by the project ID that is associated with the step (cloud only).
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Step'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/steps/{step_id}:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Retrieve Step
+      description: Get a step by ID.
+      parameters:
+      - name: step_id
+        in: path
+        required: true
+        description: The ID of the step in the format 'step-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Step'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/steps/{step_id}/feedback:
+    patch:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Modify Feedback For Step
+      description: Modify feedback for a given step.
+      parameters:
+      - name: step_id
+        in: path
+        required: true
+        description: The ID of the step in the format 'step-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/steps/{step_id}/messages:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: List Messages For Step
+      description: List messages for a given step.
+      parameters:
+      - name: step_id
+        in: path
+        required: true
+        description: The ID of the step in the format 'step-<uuid4>'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Message ID cursor for pagination. Returns messages that come before this message ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Message ID cursor for pagination. Returns messages that come after this message ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of messages to return
+        schema:
+          type: string
+          default: 100
+      - name: order
+        in: query
+        required: false
+        description: Sort order for messages by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: asc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Sort by field
+        schema:
+          type: string
+          default: created_at
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/steps/{step_id}/metrics:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Retrieve Metrics For Step
+      description: Get step metrics by step ID.
+      parameters:
+      - name: step_id
+        in: path
+        required: true
+        description: The ID of the step in the format 'step-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/steps/{step_id}/trace:
+    get:
+      tags:
+      - Runs, Jobs and Steps
+      summary: Retrieve Trace For Step
+      description: Retrieve Trace For Step
+      parameters:
+      - name: step_id
+        in: path
+        required: true
+        description: The ID of the step in the format 'step-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    LettaMessage:
+      type: object
+      description: A single message in an agent conversation (user, assistant, tool call/return, or reasoning).
+      properties:
+        id:
+          type: string
+        message_type:
+          type: string
+          enum:
+          - user_message
+          - assistant_message
+          - reasoning_message
+          - tool_call_message
+          - tool_return_message
+          - system_message
+        content:
+          type: string
+        date:
+          type: string
+          format: date-time
+    Job:
+      type: object
+      description: A background job, such as a file-processing or batch operation.
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        job_type:
+          type: string
+        agent_id:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+    Run:
+      type: object
+      description: An asynchronous execution of an agent turn.
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+          - created
+          - running
+          - completed
+          - failed
+          - cancelled
+        agent_id:
+          type: string
+        background:
+          type: boolean
+        stop_reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        ttft_ns:
+          type: integer
+          description: Time to first token, in nanoseconds.
+        total_duration_ns:
+          type: integer
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+    Step:
+      type: object
+      description: A single model call within a run.
+      properties:
+        id:
+          type: string
+        run_id:
+          type: string
+        agent_id:
+          type: string
+        provider_name:
+          type: string
+        model:
+          type: string
+        prompt_tokens:
+          type: integer
+        completion_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+        stop_reason:
+          type: string
+        trace_id:
+          type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

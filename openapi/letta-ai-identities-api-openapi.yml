@@ -1,0 +1,522 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates Identities API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Identities
+  description: End users of a multi-tenant Letta deployment.
+paths:
+  /v1/identities/:
+    get:
+      tags:
+      - Identities
+      summary: List Identities
+      description: Get a list of all identities in the database
+      parameters:
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: project_id
+        in: query
+        required: false
+        description: '[DEPRECATED: Use X-Project-Id header instead] Filter identities by project ID'
+        schema:
+          type: string
+      - name: identifier_key
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: identity_type
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Identity ID cursor for pagination. Returns identities that come before this identity ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Identity ID cursor for pagination. Returns identities that come after this identity ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of identities to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for identities by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Identity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+      - Identities
+      summary: Create Identity
+      description: Create Identity
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIdentityRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    put:
+      tags:
+      - Identities
+      summary: Upsert Identity
+      description: Upsert Identity
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/identities/count:
+    get:
+      tags:
+      - Identities
+      summary: Count Identities
+      description: Get count of all identities for a user
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/identities/{identity_id}:
+    get:
+      tags:
+      - Identities
+      summary: Retrieve Identity
+      description: Retrieve Identity
+      parameters:
+      - name: identity_id
+        in: path
+        required: true
+        description: The ID of the identity in the format 'identity-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - Identities
+      summary: Modify Identity
+      description: Modify Identity
+      parameters:
+      - name: identity_id
+        in: path
+        required: true
+        description: The ID of the identity in the format 'identity-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIdentityRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Identities
+      summary: Delete Identity
+      description: Delete an identity by its identifier key
+      parameters:
+      - name: identity_id
+        in: path
+        required: true
+        description: The ID of the identity in the format 'identity-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/identities/{identity_id}/agents:
+    get:
+      tags:
+      - Identities
+      summary: List Agents For Identity
+      description: Get all agents associated with the specified identity.
+      parameters:
+      - name: identity_id
+        in: path
+        required: true
+        description: The ID of the identity in the format 'identity-<uuid4>'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Agent ID cursor for pagination. Returns agents that come before this agent ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Agent ID cursor for pagination. Returns agents that come after this agent ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of agents to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for agents by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: include
+        in: query
+        required: false
+        description: Specify which relational fields to include in the response. No relationships are included by default.
+        schema:
+          type: array
+          default: []
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/identities/{identity_id}/blocks:
+    get:
+      tags:
+      - Identities
+      summary: List Blocks For Identity
+      description: Get all blocks associated with the specified identity.
+      parameters:
+      - name: identity_id
+        in: path
+        required: true
+        description: The ID of the identity in the format 'identity-<uuid4>'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Block ID cursor for pagination. Returns blocks that come before this block ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Block ID cursor for pagination. Returns blocks that come after this block ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of blocks to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for blocks by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/identities/{identity_id}/properties:
+    put:
+      tags:
+      - Identities
+      summary: Upsert Properties For Identity
+      description: Upsert Properties For Identity
+      parameters:
+      - name: identity_id
+        in: path
+        required: true
+        description: The ID of the identity in the format 'identity-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  schemas:
+    CreateIdentityRequest:
+      type: object
+      required:
+      - identifier_key
+      - name
+      - identity_type
+      properties:
+        identifier_key:
+          type: string
+        name:
+          type: string
+        identity_type:
+          type: string
+          enum:
+          - org
+          - user
+          - other
+        agent_ids:
+          type: array
+          items:
+            type: string
+        block_ids:
+          type: array
+          items:
+            type: string
+    Identity:
+      type: object
+      description: An end user of a multi-tenant Letta deployment.
+      properties:
+        id:
+          type: string
+        identifier_key:
+          type: string
+        name:
+          type: string
+        identity_type:
+          type: string
+          enum:
+          - org
+          - user
+          - other
+        project_id:
+          type: string
+        agent_ids:
+          type: array
+          items:
+            type: string
+        block_ids:
+          type: array
+          items:
+            type: string
+        properties:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

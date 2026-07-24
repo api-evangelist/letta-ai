@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates Tag API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Tag
+paths:
+  /v1/tags/:
+    get:
+      tags:
+      - Tag
+      summary: List Tags
+      description: Get the list of all tags (from agents and blocks) that have been created.
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: Tag cursor for pagination. Returns tags that come before this tag in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Tag cursor for pagination. Returns tags that come after this tag in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of tags to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for tags. 'asc' for alphabetical order, 'desc' for reverse alphabetical order
+        schema:
+          type: string
+          default: asc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: name
+      - name: query_text
+        in: query
+        required: false
+        description: Filter tags by text search. Deprecated, please use name field instead
+        schema:
+          type: string
+      - name: name
+        in: query
+        required: false
+        description: Filter tags by name
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

@@ -1,0 +1,364 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Agent Templates
+  description: Cloud-only versioned agent configuration templates.
+paths:
+  /v1/templates:
+    get:
+      tags:
+      - Agent Templates
+      summary: List templates (Cloud-only)
+      description: List all templates
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: exact
+        in: query
+        required: false
+        description: Whether to search for an exact name match
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: version
+        in: query
+        required: false
+        description: Specify the version you want to return, otherwise will return the latest version
+        schema:
+          type: string
+      - name: template_id
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: project_slug
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: project_id
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: sort_by
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - updated_at
+          - created_at
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Template'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+      - Agent Templates
+      summary: Create template (Cloud-only)
+      description: Creates a new template from an existing agent or agent file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/templates/{project_id}:
+    post:
+      tags:
+      - Agent Templates
+      summary: Create template (Cloud-only)
+      description: Creates a new template from an existing agent or agent file
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        description: The project id
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/templates/{project_id}/{name}/versions:
+    get:
+      tags:
+      - Agent Templates
+      summary: List template versions (Cloud-only)
+      description: List all versions of a specific template
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        description: The project id
+        schema:
+          type: string
+      - name: name
+        in: path
+        required: true
+        description: The template name (without version)
+        schema:
+          type: string
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/templates/{project_id}/{template_version}/agents:
+    post:
+      tags:
+      - Agent Templates
+      summary: Create Agents From Template
+      description: Creates an Agent or multiple Agents from a template
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        description: The project id
+        schema:
+          type: string
+      - name: template_version
+        in: path
+        required: true
+        description: The template version, formatted as {template-name}:{version-number} or {template-name}:latest. This endpoint is not available for self-hosted Letta.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AgentState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  schemas:
+    Template:
+      type: object
+      description: A Cloud-only versioned agent configuration used to deploy new agents.
+      properties:
+        name:
+          type: string
+        project_id:
+          type: string
+        version:
+          type: integer
+        agent_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    AgentState:
+      type: object
+      description: A Letta stateful agent, including its memory, tools, sources, and model configuration.
+      properties:
+        id:
+          type: string
+          example: agent-123e4567-e89b-42d3-8456-426614174000
+        name:
+          type: string
+        agent_type:
+          type: string
+        system:
+          type: string
+        description:
+          type: string
+        model:
+          type: string
+        embedding:
+          type: string
+        llm_config:
+          type: object
+          additionalProperties: true
+        embedding_config:
+          type: object
+          additionalProperties: true
+        memory:
+          type: object
+          additionalProperties: true
+        blocks:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        tools:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        sources:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

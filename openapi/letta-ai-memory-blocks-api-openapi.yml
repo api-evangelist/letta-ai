@@ -1,0 +1,563 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates Memory Blocks API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Memory Blocks
+  description: Core-memory blocks shared across agents, groups, and identities.
+paths:
+  /v1/blocks/:
+    get:
+      tags:
+      - Memory Blocks
+      summary: List Blocks
+      description: List Blocks
+      parameters:
+      - name: label
+        in: query
+        required: false
+        description: Label to include (alphanumeric, hyphens, underscores, forward slashes)
+        schema:
+          type: string
+      - name: templates_only
+        in: query
+        required: false
+        description: Whether to include only templates
+        schema:
+          type: boolean
+          default: false
+      - name: name
+        in: query
+        required: false
+        description: Name filter (alphanumeric, spaces, hyphens, underscores)
+        schema:
+          type: string
+      - name: identity_id
+        in: query
+        required: false
+        description: The ID of the identity in the format 'identity-<uuid4>'
+        schema:
+          type: string
+      - name: identifier_keys
+        in: query
+        required: false
+        description: Search agents by identifier keys
+        schema:
+          type: string
+      - name: project_id
+        in: query
+        required: false
+        description: Search blocks by project id
+        schema:
+          type: string
+      - name: tags
+        in: query
+        required: false
+        description: List of tags to filter blocks by
+        schema:
+          type: string
+      - name: match_all_tags
+        in: query
+        required: false
+        description: If True, only returns blocks that match ALL given tags. Otherwise, return blocks that have ANY of the passed-in tags.
+        schema:
+          type: boolean
+          default: false
+      - name: limit
+        in: query
+        required: false
+        description: Number of blocks to return
+        schema:
+          type: string
+          default: 50
+      - name: before
+        in: query
+        required: false
+        description: Block ID cursor for pagination. Returns blocks that come before this block ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Block ID cursor for pagination. Returns blocks that come after this block ID in the specified sort order
+        schema:
+          type: string
+      - name: order
+        in: query
+        required: false
+        description: Sort order for blocks by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: asc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: label_search
+        in: query
+        required: false
+        description: Search blocks by label. If provided, returns blocks whose label matches the search query. This is a full-text search on block labels.
+        schema:
+          type: string
+      - name: description_search
+        in: query
+        required: false
+        description: Search blocks by description. If provided, returns blocks whose description matches the search query. This is a full-text search on block descriptions.
+        schema:
+          type: string
+      - name: value_search
+        in: query
+        required: false
+        description: Search blocks by value. If provided, returns blocks whose value matches the search query. This is a full-text search on block values.
+        schema:
+          type: string
+      - name: connected_to_agents_count_gt
+        in: query
+        required: false
+        description: Filter blocks by the number of connected agents. If provided, returns blocks that have more than this number of connected agents.
+        schema:
+          type: string
+      - name: connected_to_agents_count_lt
+        in: query
+        required: false
+        description: Filter blocks by the number of connected agents. If provided, returns blocks that have less than this number of connected agents.
+        schema:
+          type: string
+      - name: connected_to_agents_count_eq
+        in: query
+        required: false
+        description: Filter blocks by the exact number of connected agents. If provided, returns blocks that have exactly this number of connected agents.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Block'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+      - Memory Blocks
+      summary: Create Block
+      description: Create Block
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBlockRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/blocks/count:
+    get:
+      tags:
+      - Memory Blocks
+      summary: Count Blocks
+      description: 'Count all blocks with optional filtering.
+
+        Supports the same filters as list_blocks for consistent querying.'
+      parameters:
+      - name: label
+        in: query
+        required: false
+        description: Label to include (alphanumeric, hyphens, underscores, forward slashes)
+        schema:
+          type: string
+      - name: templates_only
+        in: query
+        required: false
+        description: Whether to include only templates
+        schema:
+          type: boolean
+          default: false
+      - name: name
+        in: query
+        required: false
+        description: Name filter (alphanumeric, spaces, hyphens, underscores)
+        schema:
+          type: string
+      - name: tags
+        in: query
+        required: false
+        description: List of tags to filter blocks by
+        schema:
+          type: string
+      - name: match_all_tags
+        in: query
+        required: false
+        description: If True, only counts blocks that match ALL given tags. Otherwise, counts blocks that have ANY of the passed-in tags.
+        schema:
+          type: boolean
+          default: false
+      - name: project_id
+        in: query
+        required: false
+        description: Search blocks by project id
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/blocks/{block_id}:
+    patch:
+      tags:
+      - Memory Blocks
+      summary: Modify Block
+      description: Modify Block
+      parameters:
+      - name: block_id
+        in: path
+        required: true
+        description: The ID of the block in the format 'block-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBlockRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Memory Blocks
+      summary: Delete Block
+      description: Delete Block
+      parameters:
+      - name: block_id
+        in: path
+        required: true
+        description: The ID of the block in the format 'block-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      tags:
+      - Memory Blocks
+      summary: Retrieve Block
+      description: Retrieve Block
+      parameters:
+      - name: block_id
+        in: path
+        required: true
+        description: The ID of the block in the format 'block-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/blocks/{block_id}/agents:
+    get:
+      tags:
+      - Memory Blocks
+      summary: List Agents For Block
+      description: 'Retrieves all agents associated with the specified block.
+
+        Raises a 404 if the block does not exist.'
+      parameters:
+      - name: block_id
+        in: path
+        required: true
+        description: The ID of the block in the format 'block-<uuid4>'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Agent ID cursor for pagination. Returns agents that come before this agent ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Agent ID cursor for pagination. Returns agents that come after this agent ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of agents to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for agents by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: include_relationships
+        in: query
+        required: false
+        description: Specify which relational fields (e.g., 'tools', 'sources', 'memory') to include in the response. If not provided, all relationships are loaded by default. Using this can optimize performance by reducing unnecessary joins.This is a legacy parameter, and no longer supported after 1.0.0 SDK versions.
+        schema:
+          type: string
+      - name: include
+        in: query
+        required: false
+        description: Specify which relational fields to include in the response. No relationships are included by default.
+        schema:
+          type: array
+          default: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/blocks/{block_id}/identities/attach/{identity_id}:
+    patch:
+      tags:
+      - Memory Blocks
+      summary: Attach Identity To Block
+      description: Attach an identity to a block.
+      parameters:
+      - name: identity_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: block_id
+        in: path
+        required: true
+        description: The ID of the block in the format 'block-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/blocks/{block_id}/identities/detach/{identity_id}:
+    patch:
+      tags:
+      - Memory Blocks
+      summary: Detach Identity From Block
+      description: Detach an identity from a block.
+      parameters:
+      - name: identity_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: block_id
+        in: path
+        required: true
+        description: The ID of the block in the format 'block-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  schemas:
+    CreateBlockRequest:
+      type: object
+      required:
+      - label
+      - value
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+        limit:
+          type: integer
+        description:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    Block:
+      type: object
+      description: A core-memory block - a labeled, always-in-context chunk of agent memory.
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+          example: persona
+        value:
+          type: string
+        limit:
+          type: integer
+          description: Character limit for the block value.
+        is_template:
+          type: boolean
+        template_name:
+          type: string
+        read_only:
+          type: boolean
+        description:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        hidden:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

@@ -1,0 +1,776 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates Tools API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Tools
+  description: Functions agents can call, including MCP-backed tools.
+paths:
+  /v1/tools/:
+    get:
+      tags:
+      - Tools
+      summary: List Tools
+      description: Get a list of all tools available to agents.
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: Tool ID cursor for pagination. Returns tools that come before this tool ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Tool ID cursor for pagination. Returns tools that come after this tool ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of tools to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for tools by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: name
+        in: query
+        required: false
+        description: Filter by single tool name
+        schema:
+          type: string
+      - name: names
+        in: query
+        required: false
+        description: Filter by specific tool names
+        schema:
+          type: string
+      - name: tool_ids
+        in: query
+        required: false
+        description: Filter by specific tool IDs - accepts repeated params or comma-separated values
+        schema:
+          type: string
+      - name: search
+        in: query
+        required: false
+        description: Search tool names (case-insensitive partial match)
+        schema:
+          type: string
+      - name: tool_types
+        in: query
+        required: false
+        description: Filter by tool type(s) - accepts repeated params or comma-separated values
+        schema:
+          type: string
+      - name: exclude_tool_types
+        in: query
+        required: false
+        description: Tool type(s) to exclude - accepts repeated params or comma-separated values
+        schema:
+          type: string
+      - name: return_only_letta_tools
+        in: query
+        required: false
+        description: Return only tools with tool_type starting with 'letta_'
+        schema:
+          type: string
+          default: false
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tool'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+      - Tools
+      summary: Create Tool
+      description: Create a new tool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateToolRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tool'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    put:
+      tags:
+      - Tools
+      summary: Upsert Tool
+      description: Create or update a tool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/tools/count:
+    get:
+      tags:
+      - Tools
+      summary: Count Tools
+      description: Get a count of all tools available to agents belonging to the org of the user.
+      parameters:
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: names
+        in: query
+        required: false
+        description: Filter by specific tool names
+        schema:
+          type: string
+      - name: tool_ids
+        in: query
+        required: false
+        description: Filter by specific tool IDs - accepts repeated params or comma-separated values
+        schema:
+          type: string
+      - name: search
+        in: query
+        required: false
+        description: Search tool names (case-insensitive partial match)
+        schema:
+          type: string
+      - name: tool_types
+        in: query
+        required: false
+        description: Filter by tool type(s) - accepts repeated params or comma-separated values
+        schema:
+          type: string
+      - name: exclude_tool_types
+        in: query
+        required: false
+        description: Tool type(s) to exclude - accepts repeated params or comma-separated values
+        schema:
+          type: string
+      - name: return_only_letta_tools
+        in: query
+        required: false
+        description: Count only tools with tool_type starting with 'letta_'
+        schema:
+          type: string
+          default: false
+      - name: exclude_letta_tools
+        in: query
+        required: false
+        description: Exclude built-in Letta tools from the count
+        schema:
+          type: string
+          default: false
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/tools/add-base-tools:
+    post:
+      tags:
+      - Tools
+      summary: Upsert Base Tools
+      description: Upsert base tools
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/tools/run:
+    post:
+      tags:
+      - Tools
+      summary: Run Tool From Source
+      description: Attempt to build a tool from source, then run it on the provided arguments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/tools/search:
+    post:
+      tags:
+      - Tools
+      summary: Search Tools
+      description: Search tools using semantic search.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/tools/{tool_id}:
+    delete:
+      tags:
+      - Tools
+      summary: Delete Tool
+      description: Delete a tool by name
+      parameters:
+      - name: tool_id
+        in: path
+        required: true
+        description: The ID of the tool in the format 'tool-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      tags:
+      - Tools
+      summary: Retrieve Tool
+      description: Get a tool by ID
+      parameters:
+      - name: tool_id
+        in: path
+        required: true
+        description: The ID of the tool in the format 'tool-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tool'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - Tools
+      summary: Modify Tool
+      description: Update an existing tool
+      parameters:
+      - name: tool_id
+        in: path
+        required: true
+        description: The ID of the tool in the format 'tool-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateToolRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tool'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/tools/mcp/servers:
+    get:
+      tags:
+      - Tools
+      summary: List Mcp Servers
+      description: Get a list of all configured MCP servers
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/McpServerConfig'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags:
+      - Tools
+      summary: Add Mcp Server To Config
+      description: Add a new MCP server to the Letta MCP server config
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/tools/mcp/servers/connect:
+    post:
+      tags:
+      - Tools
+      summary: Connect Mcp Server
+      description: 'Connect to an MCP server with support for OAuth via SSE.
+
+        Returns a stream of events handling authorization state and exchange if OAuth is required.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+            text/event-stream:
+              description: Server-Sent Events stream
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/tools/mcp/servers/test:
+    post:
+      tags:
+      - Tools
+      summary: Test Mcp Server
+      description: 'Test connection to an MCP server without adding it.
+
+        Returns the list of available tools if successful.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/tools/mcp/servers/{mcp_server_name}:
+    patch:
+      tags:
+      - Tools
+      summary: Update Mcp Server
+      description: Update an existing MCP server configuration
+      parameters:
+      - name: mcp_server_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Tools
+      summary: Delete Mcp Server From Config
+      description: Delete a MCP server configuration
+      parameters:
+      - name: mcp_server_name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/tools/mcp/servers/{mcp_server_name}/resync:
+    post:
+      tags:
+      - Tools
+      summary: Resync Mcp Server Tools
+      description: 'Resync tools for an MCP server by:
+
+        1. Fetching current tools from the MCP server
+
+        2. Deleting tools that no longer exist on the server
+
+        3. Updating schemas for existing tools
+
+        4. Adding new tools from the server'
+      parameters:
+      - name: mcp_server_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: agent_id
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/tools/mcp/servers/{mcp_server_name}/tools:
+    get:
+      tags:
+      - Tools
+      summary: List Mcp Tools By Server
+      description: Get a list of all tools for a specific MCP server
+      parameters:
+      - name: mcp_server_name
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/tools/mcp/servers/{mcp_server_name}/tools/{tool_name}/execute:
+    post:
+      tags:
+      - Tools
+      summary: Execute Mcp Tool
+      description: 'Execute a specific MCP tool from a configured server.
+
+        Returns the tool execution result.'
+      parameters:
+      - name: mcp_server_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: tool_name
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  schemas:
+    CreateToolRequest:
+      type: object
+      required:
+      - source_code
+      properties:
+        source_code:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        source_type:
+          type: string
+          default: python
+        json_schema:
+          type: object
+          additionalProperties: true
+    Tool:
+      type: object
+      description: A function an agent can call.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        tool_type:
+          type: string
+        description:
+          type: string
+        source_type:
+          type: string
+          example: python
+        source_code:
+          type: string
+        json_schema:
+          type: object
+          additionalProperties: true
+        args_json_schema:
+          type: object
+          additionalProperties: true
+        tags:
+          type: array
+          items:
+            type: string
+        pip_requirements:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        default_requires_approval:
+          type: boolean
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    McpServerConfig:
+      type: object
+      description: A configured remote MCP (Model Context Protocol) tool server. Shape varies by transport (stdio, SSE, or Streamable HTTP).
+      properties:
+        id:
+          type: string
+        server_name:
+          type: string
+        type:
+          type: string
+          enum:
+          - sse
+          - stdio
+          - streamable_http
+        server_url:
+          type: string
+          format: uri
+        command:
+          type: string
+        args:
+          type: array
+          items:
+            type: string
+        env:
+          type: object
+          additionalProperties:
+            type: string
+        custom_headers:
+          type: object
+          additionalProperties:
+            type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

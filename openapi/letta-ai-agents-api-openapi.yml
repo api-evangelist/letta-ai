@@ -1,0 +1,2112 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates Agents API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Agents
+  description: Stateful agents and their lifecycle.
+paths:
+  /v1/agents/:
+    get:
+      tags:
+      - Agents
+      summary: List Agents
+      description: Get a list of all agents.
+      parameters:
+      - name: name
+        in: query
+        required: false
+        description: Name of the agent
+        schema:
+          type: string
+      - name: tags
+        in: query
+        required: false
+        description: List of tags to filter agents by
+        schema:
+          type: string
+      - name: match_all_tags
+        in: query
+        required: false
+        description: If True, only returns agents that match ALL given tags. Otherwise, return agents that have ANY of the passed-in tags.
+        schema:
+          type: boolean
+          default: false
+      - name: before
+        in: query
+        required: false
+        description: Cursor for pagination
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Cursor for pagination
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Limit for pagination
+        schema:
+          type: string
+          default: 50
+      - name: query_text
+        in: query
+        required: false
+        description: Search agents by name
+        schema:
+          type: string
+      - name: project_id
+        in: query
+        required: false
+        description: Search agents by project ID - this will default to your default project on cloud
+        schema:
+          type: string
+      - name: template_id
+        in: query
+        required: false
+        description: Search agents by template ID
+        schema:
+          type: string
+      - name: base_template_id
+        in: query
+        required: false
+        description: Search agents by base template ID
+        schema:
+          type: string
+      - name: identity_id
+        in: query
+        required: false
+        description: Search agents by identity ID
+        schema:
+          type: string
+      - name: identifier_keys
+        in: query
+        required: false
+        description: Search agents by identifier keys
+        schema:
+          type: string
+      - name: include_relationships
+        in: query
+        required: false
+        description: Specify which relational fields (e.g., 'tools', 'sources', 'memory') to include in the response. If not provided, all relationships are loaded by default. Using this can optimize performance by reducing unnecessary joins.This is a legacy parameter, and no longer supported after 1.0.0 SDK versions.
+        schema:
+          type: string
+      - name: include
+        in: query
+        required: false
+        description: Specify which relational fields to include in the response. No relationships are included by default.
+        schema:
+          type: array
+          default: []
+      - name: order
+        in: query
+        required: false
+        description: Sort order for agents by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+          enum:
+          - created_at
+          - updated_at
+          - last_run_completion
+      - name: ascending
+        in: query
+        required: false
+        description: Whether to sort agents oldest to newest (True) or newest to oldest (False, default)
+        schema:
+          type: boolean
+          default: false
+      - name: sort_by
+        in: query
+        required: false
+        description: 'Field to sort by. Options: ''created_at'' (default), ''last_run_completion'''
+        schema:
+          type: string
+          default: created_at
+      - name: last_stop_reason
+        in: query
+        required: false
+        description: Filter agents by their last stop reason.
+        schema:
+          type: string
+      - name: created_by_id
+        in: query
+        required: false
+        description: Filter agents by the user who created them.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AgentState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+      - Agents
+      summary: Create Agent
+      description: Create an agent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/count:
+    get:
+      tags:
+      - Agents
+      summary: Count Agents
+      description: 'Get the total number of agents with optional filtering.
+
+        Supports the same filters as list_agents for consistent querying.'
+      parameters:
+      - name: name
+        in: query
+        required: false
+        description: Name of the agent
+        schema:
+          type: string
+      - name: tags
+        in: query
+        required: false
+        description: List of tags to filter agents by
+        schema:
+          type: string
+      - name: match_all_tags
+        in: query
+        required: false
+        description: If True, only counts agents that match ALL given tags. Otherwise, counts agents that have ANY of the passed-in tags.
+        schema:
+          type: boolean
+          default: false
+      - name: query_text
+        in: query
+        required: false
+        description: Search agents by name
+        schema:
+          type: string
+      - name: project_id
+        in: query
+        required: false
+        description: Search agents by project ID - this will default to your default project on cloud
+        schema:
+          type: string
+      - name: template_id
+        in: query
+        required: false
+        description: Search agents by template ID
+        schema:
+          type: string
+      - name: base_template_id
+        in: query
+        required: false
+        description: Search agents by base template ID
+        schema:
+          type: string
+      - name: identity_id
+        in: query
+        required: false
+        description: Search agents by identity ID
+        schema:
+          type: string
+      - name: identifier_keys
+        in: query
+        required: false
+        description: Search agents by identifier keys
+        schema:
+          type: string
+      - name: last_stop_reason
+        in: query
+        required: false
+        description: Filter agents by their last stop reason.
+        schema:
+          type: string
+      - name: created_by_id
+        in: query
+        required: false
+        description: Filter agents by the user who created them.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/agents/import:
+    post:
+      tags:
+      - Agents
+      summary: Import Agent
+      description: 'Import a serialized agent file and recreate the agent(s) in the system.
+
+        Returns the IDs of all imported agents.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/search:
+    post:
+      tags:
+      - Agents
+      summary: Search Deployed Agents
+      description: Search deployed agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Modify Agent
+      description: Update an existing agent.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    get:
+      tags:
+      - Agents
+      summary: Retrieve Agent
+      description: Get the state of the agent.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      - name: include_relationships
+        in: query
+        required: false
+        description: Specify which relational fields (e.g., 'tools', 'sources', 'memory') to include in the response. If not provided, all relationships are loaded by default. Using this can optimize performance by reducing unnecessary joins.This is a legacy parameter, and no longer supported after 1.0.0 SDK versions.
+        schema:
+          type: string
+      - name: include
+        in: query
+        required: false
+        description: Specify which relational fields to include in the response. No relationships are included by default.
+        schema:
+          type: array
+          default: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+      - Agents
+      summary: Delete Agent
+      description: Delete an agent.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/agents/{agent_id}/export:
+    get:
+      tags:
+      - Agents
+      summary: Export Agent
+      description: Export the serialized JSON representation of an agent, formatted with indentation.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: max_steps
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 100
+      - name: use_legacy_format
+        in: query
+        required: false
+        description: If True, exports using the legacy single-agent 'v1' format with inline tools/blocks. If False, exports using the new multi-entity 'v2' format, with separate agents, tools, blocks, files, etc.
+        schema:
+          type: boolean
+          default: false
+      - name: conversation_id
+        in: query
+        required: false
+        description: Conversation ID to export. If provided, uses messages from this conversation instead of the agent's global message history.
+        schema:
+          type: string
+      - name: scrub_messages
+        in: query
+        required: false
+        description: If True, excludes all messages from the export. Useful for sharing agent configs without conversation history.
+        schema:
+          type: boolean
+          default: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+      - Agents
+      summary: Export Agent With Skills
+      description: Export the serialized JSON representation of an agent with optional skills.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/core-memory:
+    get:
+      tags:
+      - Agents
+      summary: Retrieve Agent Memory
+      description: 'Retrieve the memory state of a specific agent.
+
+        This endpoint fetches the current memory state of the agent identified by the user ID and agent ID.'
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/agents/{agent_id}/core-memory/blocks:
+    get:
+      tags:
+      - Agents
+      summary: List Blocks For Agent
+      description: Retrieve the core memory blocks of a specific agent.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Block ID cursor for pagination. Returns blocks that come before this block ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Block ID cursor for pagination. Returns blocks that come after this block ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of blocks to return
+        schema:
+          type: string
+          default: 100
+      - name: order
+        in: query
+        required: false
+        description: Sort order for blocks by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Block'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/agents/{agent_id}/core-memory/blocks/attach/{block_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Attach Block To Agent
+      description: Attach a core memory block to an agent.
+      parameters:
+      - name: block_id
+        in: path
+        required: true
+        description: The ID of the block in the format 'block-<uuid4>'
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/core-memory/blocks/detach/{block_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Detach Block From Agent
+      description: Detach a core memory block from an agent.
+      parameters:
+      - name: block_id
+        in: path
+        required: true
+        description: The ID of the block in the format 'block-<uuid4>'
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/core-memory/blocks/{block_label}:
+    get:
+      tags:
+      - Agents
+      summary: Retrieve Block For Agent
+      description: Retrieve a core memory block from an agent.
+      parameters:
+      - name: block_label
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - Agents
+      summary: Modify Block For Agent
+      description: Updates a core memory block of an agent.
+      parameters:
+      - name: block_label
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBlockRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/archival-memory:
+    get:
+      tags:
+      - Agents
+      summary: List Passages
+      description: Retrieve the memories in an agent's archival memory store (paginated query).
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Unique ID of the memory to start the query range at.
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Unique ID of the memory to end the query range at.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: How many results to include in the response.
+        schema:
+          type: string
+          default: 100
+      - name: search
+        in: query
+        required: false
+        description: Search passages by text
+        schema:
+          type: string
+      - name: ascending
+        in: query
+        required: false
+        description: Whether to sort passages oldest to newest (True, default) or newest to oldest (False)
+        schema:
+          type: string
+          default: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Passage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+      - Agents
+      summary: Create Passage
+      description: Insert a memory into an agent's archival memory store.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Passage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/archival-memory/search:
+    get:
+      tags:
+      - Agents
+      summary: Search Archival Memory
+      description: Search archival memory using semantic (embedding-based) search with optional temporal filtering.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      - name: query
+        in: query
+        required: true
+        description: String to search for using semantic similarity
+        schema:
+          type: string
+      - name: tags
+        in: query
+        required: false
+        description: Optional list of tags to filter search results
+        schema:
+          type: string
+      - name: tag_match_mode
+        in: query
+        required: false
+        description: How to match tags - 'any' to match passages with any of the tags, 'all' to match only passages with all tags
+        schema:
+          type: string
+          default: any
+          enum:
+          - any
+          - all
+      - name: top_k
+        in: query
+        required: false
+        description: Maximum number of results to return. Uses system default if not specified
+        schema:
+          type: string
+      - name: start_datetime
+        in: query
+        required: false
+        description: Filter results to passages created after this datetime
+        schema:
+          type: string
+      - name: end_datetime
+        in: query
+        required: false
+        description: Filter results to passages created before this datetime
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/agents/{agent_id}/archival-memory/{memory_id}:
+    delete:
+      tags:
+      - Agents
+      summary: Delete Passage
+      description: Delete a memory from an agent's archival memory store.
+      parameters:
+      - name: memory_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/agents/{agent_id}/archives/attach/{archive_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Attach Archive To Agent
+      description: Attach an archive to an agent.
+      parameters:
+      - name: archive_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/archives/detach/{archive_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Detach Archive From Agent
+      description: Detach an archive from an agent.
+      parameters:
+      - name: archive_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/messages:
+    get:
+      tags:
+      - Agents
+      summary: List Messages
+      description: Retrieve message history for an agent.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Message ID cursor for pagination. Returns messages that come before this message ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Message ID cursor for pagination. Returns messages that come after this message ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of messages to return
+        schema:
+          type: string
+          default: 100
+      - name: order
+        in: query
+        required: false
+        description: Sort order for messages by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: group_id
+        in: query
+        required: false
+        description: Group ID to filter messages by.
+        schema:
+          type: string
+      - name: conversation_id
+        in: query
+        required: false
+        description: Conversation ID to filter messages by.
+        schema:
+          type: string
+      - name: use_assistant_message
+        in: query
+        required: false
+        description: Whether to use assistant messages
+        schema:
+          type: boolean
+          default: true
+      - name: assistant_message_tool_name
+        in: query
+        required: false
+        description: The name of the designated message tool.
+        schema:
+          type: string
+          default: send_message
+      - name: assistant_message_tool_kwarg
+        in: query
+        required: false
+        description: The name of the message argument.
+        schema:
+          type: string
+          default: message
+      - name: include_err
+        in: query
+        required: false
+        description: Whether to include error messages and error statuses. For debugging purposes only.
+        schema:
+          type: string
+      - name: include_return_message_types
+        in: query
+        required: false
+        description: Message types to include in response. When null, all message types are returned.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LettaMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+      - Agents
+      summary: Send Message
+      description: 'Process a user message and return the agent''s response.
+
+        This endpoint accepts a message from a user and processes it through the agent.'
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMessageRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LettaMessage'
+            text/event-stream:
+              description: Server-Sent Events stream
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/messages/async:
+    post:
+      tags:
+      - Agents
+      summary: Send Message Async
+      description: 'Asynchronously process a user message and return a run object.
+
+        The actual processing happens in the background, and the status can be checked using the run ID.'
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMessageRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/messages/stream:
+    post:
+      tags:
+      - Agents
+      summary: Send Message Streaming
+      description: Process a user message and return the agent's response.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMessageRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LettaMessage'
+            text/event-stream:
+              description: Server-Sent Events stream
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/messages/cancel:
+    post:
+      tags:
+      - Agents
+      summary: Cancel Message
+      description: Cancel runs associated with an agent. If run_ids are passed in, cancel those in particular.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/messages/preview-raw-payload:
+    post:
+      tags:
+      - Agents
+      summary: Preview Model Request
+      description: Inspect the raw LLM request payload without sending it.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/messages/{message_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Modify Message
+      description: Update the details of a message associated with an agent.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      - name: message_id
+        in: path
+        required: true
+        description: The ID of the message in the format 'message-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/reset-messages:
+    patch:
+      tags:
+      - Agents
+      summary: Reset Messages
+      description: Resets the messages for an agent
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/summarize:
+    post:
+      tags:
+      - Agents
+      summary: Summarize Messages
+      description: Summarize an agent's conversation history.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/sources:
+    get:
+      tags:
+      - Agents
+      summary: List Agent Sources
+      description: Get the sources associated with an agent.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Source ID cursor for pagination. Returns sources that come before this source ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Source ID cursor for pagination. Returns sources that come after this source ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of sources to return
+        schema:
+          type: string
+          default: 100
+      - name: order
+        in: query
+        required: false
+        description: Sort order for sources by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/agents/{agent_id}/sources/attach/{source_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Attach Source
+      description: Attach a source to an agent.
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/sources/detach/{source_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Detach Source
+      description: Detach a source from an agent.
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/tools:
+    get:
+      tags:
+      - Agents
+      summary: List Tools For Agent
+      description: Get tools from an existing agent.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Tool ID cursor for pagination. Returns tools that come before this tool ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Tool ID cursor for pagination. Returns tools that come after this tool ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of tools to return
+        schema:
+          type: string
+          default: 10
+      - name: order
+        in: query
+        required: false
+        description: Sort order for tools by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/agents/{agent_id}/tools/attach/{tool_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Attach Tool To Agent
+      description: Attach a tool to an agent.
+      parameters:
+      - name: tool_id
+        in: path
+        required: true
+        description: The ID of the tool in the format 'tool-<uuid4>'
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/tools/detach/{tool_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Detach Tool From Agent
+      description: Detach a tool from an agent.
+      parameters:
+      - name: tool_id
+        in: path
+        required: true
+        description: The ID of the tool in the format 'tool-<uuid4>'
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/identities/attach/{identity_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Attach Identity To Agent
+      description: Attach an identity to an agent.
+      parameters:
+      - name: identity_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/identities/detach/{identity_id}:
+    patch:
+      tags:
+      - Agents
+      summary: Detach Identity From Agent
+      description: Detach an identity from an agent.
+      parameters:
+      - name: identity_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/agents/{agent_id}/groups:
+    get:
+      tags:
+      - Agents
+      summary: List Groups For Agent
+      description: Lists the groups for an agent.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      - name: manager_type
+        in: query
+        required: false
+        description: Manager type to filter groups by
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Group ID cursor for pagination. Returns groups that come before this group ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Group ID cursor for pagination. Returns groups that come after this group ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of groups to return
+        schema:
+          type: string
+          default: 100
+      - name: order
+        in: query
+        required: false
+        description: Sort order for groups by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/agents/{agent_id}/context:
+    get:
+      tags:
+      - Agents
+      summary: Retrieve Agent Context Window
+      description: Retrieve the context window of a specific agent.
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        description: The ID of the agent in the format 'agent-<uuid4>'
+        schema:
+          type: string
+      - name: conversation_id
+        in: query
+        required: false
+        description: Conversation ID to get context window for. If provided, uses messages from this conversation.
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    LettaMessage:
+      type: object
+      description: A single message in an agent conversation (user, assistant, tool call/return, or reasoning).
+      properties:
+        id:
+          type: string
+        message_type:
+          type: string
+          enum:
+          - user_message
+          - assistant_message
+          - reasoning_message
+          - tool_call_message
+          - tool_return_message
+          - system_message
+        content:
+          type: string
+        date:
+          type: string
+          format: date-time
+    Passage:
+      type: object
+      description: A single unit of archival memory - a chunk of text with its embedding.
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        archive_id:
+          type: string
+        source_id:
+          type: string
+        file_id:
+          type: string
+        file_name:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+    Run:
+      type: object
+      description: An asynchronous execution of an agent turn.
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+          - created
+          - running
+          - completed
+          - failed
+          - cancelled
+        agent_id:
+          type: string
+        background:
+          type: boolean
+        stop_reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        ttft_ns:
+          type: integer
+          description: Time to first token, in nanoseconds.
+        total_duration_ns:
+          type: integer
+    CreateBlockRequest:
+      type: object
+      required:
+      - label
+      - value
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+        limit:
+          type: integer
+        description:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    CreateAgentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        system:
+          type: string
+        agent_type:
+          type: string
+          enum:
+          - memgpt_agent
+          - react_agent
+          - workflow_agent
+          - sleeptime_agent
+        model:
+          type: string
+          example: openai/gpt-4o
+        embedding:
+          type: string
+          example: openai/text-embedding-3-small
+        memory_blocks:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        tools:
+          type: array
+          items:
+            type: string
+        tool_ids:
+          type: array
+          items:
+            type: string
+        source_ids:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        include_base_tools:
+          type: boolean
+          default: true
+    CreateMessageRequest:
+      type: object
+      required:
+      - messages
+      properties:
+        messages:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum:
+                - user
+                - system
+              content:
+                type: string
+        stream_steps:
+          type: boolean
+          default: false
+        stream_tokens:
+          type: boolean
+          default: false
+    Block:
+      type: object
+      description: A core-memory block - a labeled, always-in-context chunk of agent memory.
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+          example: persona
+        value:
+          type: string
+        limit:
+          type: integer
+          description: Character limit for the block value.
+        is_template:
+          type: boolean
+        template_name:
+          type: string
+        read_only:
+          type: boolean
+        description:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        hidden:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    AgentState:
+      type: object
+      description: A Letta stateful agent, including its memory, tools, sources, and model configuration.
+      properties:
+        id:
+          type: string
+          example: agent-123e4567-e89b-42d3-8456-426614174000
+        name:
+          type: string
+        agent_type:
+          type: string
+        system:
+          type: string
+        description:
+          type: string
+        model:
+          type: string
+        embedding:
+          type: string
+        llm_config:
+          type: object
+          additionalProperties: true
+        embedding_config:
+          type: object
+          additionalProperties: true
+        memory:
+          type: object
+          additionalProperties: true
+        blocks:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        tools:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        sources:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

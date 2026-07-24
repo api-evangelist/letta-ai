@@ -1,0 +1,356 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates MCP Servers API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: MCP Servers
+  description: Remote Model Context Protocol tool servers.
+paths:
+  /v1/mcp-servers/:
+    post:
+      tags:
+      - MCP Servers
+      summary: Create Mcp Server
+      description: Add a new MCP server to the Letta MCP server config
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServerConfig'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    get:
+      tags:
+      - MCP Servers
+      summary: List Mcp Servers
+      description: Get a list of all configured MCP servers
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/McpServerConfig'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/mcp-servers/{mcp_server_id}:
+    get:
+      tags:
+      - MCP Servers
+      summary: Retrieve Mcp Server
+      description: Get a specific MCP server
+      parameters:
+      - name: mcp_server_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServerConfig'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+      - MCP Servers
+      summary: Delete Mcp Server
+      description: Delete an MCP server by its ID
+      parameters:
+      - name: mcp_server_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - MCP Servers
+      summary: Update Mcp Server
+      description: Update an existing MCP server configuration
+      parameters:
+      - name: mcp_server_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/mcp-servers/{mcp_server_id}/refresh:
+    patch:
+      tags:
+      - MCP Servers
+      summary: Refresh Mcp Server Tools
+      description: 'Refresh tools for an MCP server by:
+
+        1. Fetching current tools from the MCP server
+
+        2. Deleting tools that no longer exist on the server
+
+        3. Updating schemas for existing tools
+
+        4. Adding new tools from the server'
+      parameters:
+      - name: mcp_server_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: agent_id
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/mcp-servers/{mcp_server_id}/tools:
+    get:
+      tags:
+      - MCP Servers
+      summary: List Tools For Mcp Server
+      description: Get a list of all tools for a specific MCP server
+      parameters:
+      - name: mcp_server_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/mcp-servers/{mcp_server_id}/tools/{tool_id}:
+    get:
+      tags:
+      - MCP Servers
+      summary: Retrieve Mcp Tool
+      description: Get a specific MCP tool by its ID
+      parameters:
+      - name: mcp_server_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: tool_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/mcp-servers/{mcp_server_id}/tools/{tool_id}/run:
+    post:
+      tags:
+      - MCP Servers
+      summary: Run Mcp Tool
+      description: Execute a specific MCP tool
+      parameters:
+      - name: mcp_server_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: tool_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  schemas:
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    McpServerConfig:
+      type: object
+      description: A configured remote MCP (Model Context Protocol) tool server. Shape varies by transport (stdio, SSE, or Streamable HTTP).
+      properties:
+        id:
+          type: string
+        server_name:
+          type: string
+        type:
+          type: string
+          enum:
+          - sse
+          - stdio
+          - streamable_http
+        server_url:
+          type: string
+          format: uri
+        command:
+          type: string
+        args:
+          type: array
+          items:
+            type: string
+        env:
+          type: object
+          additionalProperties:
+            type: string
+        custom_headers:
+          type: object
+          additionalProperties:
+            type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

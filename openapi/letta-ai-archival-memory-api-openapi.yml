@@ -1,0 +1,456 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates Archival Memory API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Archival Memory
+  description: Out-of-context long-term memory archives and passages.
+paths:
+  /v1/archives/:
+    post:
+      tags:
+      - Archival Memory
+      summary: Create Archive
+      description: Create a new archive.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Archive'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    get:
+      tags:
+      - Archival Memory
+      summary: List Archives
+      description: Get a list of all archives for the current organization with optional filters and pagination.
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: Archive ID cursor for pagination. Returns archives that come before this archive ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Archive ID cursor for pagination. Returns archives that come after this archive ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of archives to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for archives by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: name
+        in: query
+        required: false
+        description: Filter by archive name (exact match)
+        schema:
+          type: string
+      - name: agent_id
+        in: query
+        required: false
+        description: Only archives attached to this agent ID
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Archive'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/archives/{archive_id}:
+    get:
+      tags:
+      - Archival Memory
+      summary: Retrieve Archive
+      description: Get a single archive by its ID.
+      parameters:
+      - name: archive_id
+        in: path
+        required: true
+        description: The ID of the archive in the format 'archive-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Archive'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - Archival Memory
+      summary: Modify Archive
+      description: Update an existing archive's name and/or description.
+      parameters:
+      - name: archive_id
+        in: path
+        required: true
+        description: The ID of the archive in the format 'archive-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Archive'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Archival Memory
+      summary: Delete Archive
+      description: Delete an archive by its ID.
+      parameters:
+      - name: archive_id
+        in: path
+        required: true
+        description: The ID of the archive in the format 'archive-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/archives/{archive_id}/agents:
+    get:
+      tags:
+      - Archival Memory
+      summary: List Agents For Archive
+      description: Get a list of agents that have access to an archive with pagination support.
+      parameters:
+      - name: archive_id
+        in: path
+        required: true
+        description: The ID of the archive in the format 'archive-<uuid4>'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Agent ID cursor for pagination. Returns agents that come before this agent ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Agent ID cursor for pagination. Returns agents that come after this agent ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of agents to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for agents by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: include
+        in: query
+        required: false
+        description: Specify which relational fields to include in the response. No relationships are included by default.
+        schema:
+          type: array
+          default: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/archives/{archive_id}/passages:
+    post:
+      tags:
+      - Archival Memory
+      summary: Create Passage In Archive
+      description: Create a new passage in an archive.
+      parameters:
+      - name: archive_id
+        in: path
+        required: true
+        description: The ID of the archive in the format 'archive-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Passage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/archives/{archive_id}/passages/batch:
+    post:
+      tags:
+      - Archival Memory
+      summary: Create Passages In Archive
+      description: Create multiple passages in an archive.
+      parameters:
+      - name: archive_id
+        in: path
+        required: true
+        description: The ID of the archive in the format 'archive-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Passage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/archives/{archive_id}/passages/{passage_id}:
+    delete:
+      tags:
+      - Archival Memory
+      summary: Delete Passage From Archive
+      description: Delete a passage from an archive.
+      parameters:
+      - name: archive_id
+        in: path
+        required: true
+        description: The ID of the archive in the format 'archive-<uuid4>'
+        schema:
+          type: string
+      - name: passage_id
+        in: path
+        required: true
+        description: The ID of the passage in the format 'passage-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    Passage:
+      type: object
+      description: A single unit of archival memory - a chunk of text with its embedding.
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        archive_id:
+          type: string
+        source_id:
+          type: string
+        file_id:
+          type: string
+        file_name:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+    Archive:
+      type: object
+      description: An agent's out-of-context, searchable long-term memory archive.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        vector_db_provider:
+          type: string
+        embedding_config:
+          type: object
+          additionalProperties: true
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

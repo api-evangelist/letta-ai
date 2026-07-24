@@ -1,0 +1,446 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates Models and Providers API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Models and Providers
+  description: Available models and configured BYOK model providers.
+paths:
+  /v1/models/:
+    get:
+      tags:
+      - Models and Providers
+      summary: List Llm Models
+      description: List available LLM models using the asynchronous implementation for improved performance.
+      parameters:
+      - name: provider_category
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: provider_name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: provider_type
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Model'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/models/embedding:
+    get:
+      tags:
+      - Models and Providers
+      summary: List Embedding Models
+      description: List available embedding models using the asynchronous implementation for improved performance.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Model'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/providers/:
+    get:
+      tags:
+      - Models and Providers
+      summary: List Providers
+      description: Get a list of all custom providers.
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: Provider ID cursor for pagination. Returns providers that come before this provider ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Provider ID cursor for pagination. Returns providers that come after this provider ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of providers to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for providers by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: name
+        in: query
+        required: false
+        description: Filter providers by name
+        schema:
+          type: string
+      - name: provider_type
+        in: query
+        required: false
+        description: Filter providers by type
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Provider'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+      - Models and Providers
+      summary: Create Provider
+      description: Create a new custom provider.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProviderRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Provider'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/providers/check:
+    post:
+      tags:
+      - Models and Providers
+      summary: Check Provider
+      description: Verify the API key and additional parameters for a provider.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/providers/{provider_id}:
+    get:
+      tags:
+      - Models and Providers
+      summary: Retrieve Provider
+      description: Get a provider by ID.
+      parameters:
+      - name: provider_id
+        in: path
+        required: true
+        description: The ID of the provider in the format 'provider-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Provider'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - Models and Providers
+      summary: Modify Provider
+      description: Update an existing custom provider.
+      parameters:
+      - name: provider_id
+        in: path
+        required: true
+        description: The ID of the provider in the format 'provider-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProviderRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Provider'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Models and Providers
+      summary: Delete Provider
+      description: Delete an existing custom provider.
+      parameters:
+      - name: provider_id
+        in: path
+        required: true
+        description: The ID of the provider in the format 'provider-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/providers/{provider_id}/check:
+    post:
+      tags:
+      - Models and Providers
+      summary: Check Existing Provider
+      description: Verify the API key and additional parameters for an existing provider.
+      parameters:
+      - name: provider_id
+        in: path
+        required: true
+        description: The ID of the provider in the format 'provider-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/providers/{provider_id}/refresh:
+    patch:
+      tags:
+      - Models and Providers
+      summary: Refresh Provider Models
+      description: 'Refresh models for a BYOK provider by querying the provider''s API.
+
+        Adds new models and removes ones no longer available.'
+      parameters:
+      - name: provider_id
+        in: path
+        required: true
+        description: The ID of the provider in the format 'provider-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  schemas:
+    CreateProviderRequest:
+      type: object
+      required:
+      - name
+      - provider_type
+      - api_key
+      properties:
+        name:
+          type: string
+        provider_type:
+          type: string
+        api_key:
+          type: string
+        base_url:
+          type: string
+    Provider:
+      type: object
+      description: A bring-your-own-key model provider configured on a Letta deployment.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        provider_type:
+          type: string
+          example: anthropic
+        provider_category:
+          type: string
+          enum:
+          - base
+          - byok
+        api_key:
+          type: string
+          writeOnly: true
+        base_url:
+          type: string
+        region:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+        last_synced:
+          type: string
+          format: date-time
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    Model:
+      type: object
+      description: An LLM or embedding model available on Letta.
+      properties:
+        handle:
+          type: string
+          example: openai/gpt-4o
+        name:
+          type: string
+        display_name:
+          type: string
+        provider_type:
+          type: string
+        provider_name:
+          type: string
+        model_type:
+          type: string
+        context_window:
+          type: integer
+        max_tokens:
+          type: integer
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

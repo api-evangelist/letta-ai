@@ -1,0 +1,526 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates Multi-Agent Groups API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Multi-Agent Groups
+  description: Groups of agents coordinating around shared memory.
+paths:
+  /v1/groups/:
+    get:
+      tags:
+      - Multi-Agent Groups
+      summary: List Groups
+      description: Fetch all multi-agent groups matching query.
+      parameters:
+      - name: manager_type
+        in: query
+        required: false
+        description: Search groups by manager type
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Group ID cursor for pagination. Returns groups that come before this group ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Group ID cursor for pagination. Returns groups that come after this group ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of groups to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for groups by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: asc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: project_id
+        in: query
+        required: false
+        description: Search groups by project id
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Group'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+      - Multi-Agent Groups
+      summary: Create Group
+      description: Create a new multi-agent group with the specified configuration.
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/groups/count:
+    get:
+      tags:
+      - Multi-Agent Groups
+      summary: Count Groups
+      description: Get the count of all groups associated with a given user.
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/groups/{group_id}:
+    get:
+      tags:
+      - Multi-Agent Groups
+      summary: Retrieve Group
+      description: Retrieve the group by id.
+      parameters:
+      - name: group_id
+        in: path
+        required: true
+        description: The ID of the group in the format 'group-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - Multi-Agent Groups
+      summary: Modify Group
+      description: Create a new multi-agent group with the specified configuration.
+      parameters:
+      - name: group_id
+        in: path
+        required: true
+        description: The ID of the group in the format 'group-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Multi-Agent Groups
+      summary: Delete Group
+      description: Delete a multi-agent group.
+      parameters:
+      - name: group_id
+        in: path
+        required: true
+        description: The ID of the group in the format 'group-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/groups/{group_id}/blocks/attach/{block_id}:
+    patch:
+      tags:
+      - Multi-Agent Groups
+      summary: Attach Block To Group
+      description: 'Attach a block to a group.
+
+        This will add the block to the group and all agents within the group.'
+      parameters:
+      - name: block_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: group_id
+        in: path
+        required: true
+        description: The ID of the group in the format 'group-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/groups/{group_id}/blocks/detach/{block_id}:
+    patch:
+      tags:
+      - Multi-Agent Groups
+      summary: Detach Block From Group
+      description: 'Detach a block from a group.
+
+        This will remove the block from the group and all agents within the group.'
+      parameters:
+      - name: block_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: group_id
+        in: path
+        required: true
+        description: The ID of the group in the format 'group-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/groups/{group_id}/messages:
+    get:
+      tags:
+      - Multi-Agent Groups
+      summary: List Group Messages
+      description: Retrieve message history for an agent.
+      parameters:
+      - name: group_id
+        in: path
+        required: true
+        description: The ID of the group in the format 'group-<uuid4>'
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Message ID cursor for pagination. Returns messages that come before this message ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Message ID cursor for pagination. Returns messages that come after this message ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of messages to retrieve
+        schema:
+          type: string
+          default: 10
+      - name: order
+        in: query
+        required: false
+        description: Sort order for messages by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: desc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: use_assistant_message
+        in: query
+        required: false
+        description: Whether to use assistant messages
+        schema:
+          type: boolean
+          default: true
+      - name: assistant_message_tool_name
+        in: query
+        required: false
+        description: The name of the designated message tool.
+        schema:
+          type: string
+          default: send_message
+      - name: assistant_message_tool_kwarg
+        in: query
+        required: false
+        description: The name of the message argument.
+        schema:
+          type: string
+          default: message
+      - name: include_return_message_types
+        in: query
+        required: false
+        description: Message types to include in response. When null, all message types are returned.
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LettaMessage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/groups/{group_id}/reset-messages:
+    patch:
+      tags:
+      - Multi-Agent Groups
+      summary: Reset Group Messages
+      description: Delete the group messages for all agents that are part of the multi-agent group.
+      parameters:
+      - name: group_id
+        in: path
+        required: true
+        description: The ID of the group in the format 'group-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  schemas:
+    LettaMessage:
+      type: object
+      description: A single message in an agent conversation (user, assistant, tool call/return, or reasoning).
+      properties:
+        id:
+          type: string
+        message_type:
+          type: string
+          enum:
+          - user_message
+          - assistant_message
+          - reasoning_message
+          - tool_call_message
+          - tool_return_message
+          - system_message
+        content:
+          type: string
+        date:
+          type: string
+          format: date-time
+    Group:
+      type: object
+      description: A multi-agent group coordinating several agents around shared memory.
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        manager_type:
+          type: string
+          enum:
+          - round_robin
+          - supervisor
+          - dynamic
+          - sleeptime
+          - voice_sleeptime
+        manager_agent_id:
+          type: string
+        agent_ids:
+          type: array
+          items:
+            type: string
+        shared_block_ids:
+          type: array
+          items:
+            type: string
+        termination_token:
+          type: string
+        max_turns:
+          type: integer
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+    CreateGroupRequest:
+      type: object
+      required:
+      - agent_ids
+      - manager_config
+      properties:
+        description:
+          type: string
+        agent_ids:
+          type: array
+          items:
+            type: string
+        shared_block_ids:
+          type: array
+          items:
+            type: string
+        manager_config:
+          type: object
+          additionalProperties: true
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

@@ -1,0 +1,796 @@
+openapi: 3.0.3
+info:
+  title: Letta Agent Templates Sources and Files API
+  description: The Letta API creates and operates stateful AI agents whose memory - core context blocks and archival vector memory - persists across sessions. It configures the tools, data sources, identities, and multi-agent groups an agent uses, sends and streams messages to agents, and inspects the runs, jobs, and steps behind every agent response. The same OpenAPI-documented interface is served by the managed Letta Cloud API and by the open-source, self-hostable Letta server. All requests require a Bearer API key.
+  version: 1.0.0
+  contact:
+    name: Letta
+    url: https://www.letta.com
+  license:
+    name: Apache-2.0
+    url: https://github.com/letta-ai/letta/blob/main/LICENSE
+servers:
+- url: https://api.letta.com/v1
+  description: Letta Cloud
+- url: http://localhost:8283/v1
+  description: Self-hosted (default local port)
+security:
+- bearerAuth: []
+tags:
+- name: Sources and Files
+  description: Uploaded files and folders used for agent grounding and retrieval.
+paths:
+  /v1/sources/:
+    get:
+      tags:
+      - Sources and Files
+      summary: List Sources
+      description: List all data sources created by a user.
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Source'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+      - Sources and Files
+      summary: Create Source
+      description: Create a new data source.
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSourceRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Source'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/sources/count:
+    get:
+      tags:
+      - Sources and Files
+      summary: Count Sources
+      description: Count all data sources created by a user.
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/sources/metadata:
+    get:
+      tags:
+      - Sources and Files
+      summary: Get Sources Metadata
+      description: Get aggregated metadata for all sources in an organization.
+      parameters:
+      - name: include_detailed_per_source_metadata
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/sources/name/{source_name}:
+    get:
+      tags:
+      - Sources and Files
+      summary: Get Source Id By Name
+      description: Get a source by name
+      parameters:
+      - name: source_name
+        in: path
+        required: true
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/sources/{source_id}:
+    get:
+      tags:
+      - Sources and Files
+      summary: Retrieve Source
+      description: Get all sources
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Source'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - Sources and Files
+      summary: Modify Source
+      description: Update the name or documentation of an existing data source.
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSourceRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Source'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Sources and Files
+      summary: Delete Source
+      description: Delete a data source.
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/sources/{source_id}/agents:
+    get:
+      tags:
+      - Sources and Files
+      summary: Get Agents For Source
+      description: Get all agent IDs that have the specified source attached.
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/sources/{source_id}/files:
+    get:
+      tags:
+      - Sources and Files
+      summary: List Source Files
+      description: List paginated files associated with a data source.
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Number of files to return
+        schema:
+          type: integer
+          default: 1000
+      - name: after
+        in: query
+        required: false
+        description: Pagination cursor to fetch the next set of results
+        schema:
+          type: string
+      - name: include_content
+        in: query
+        required: false
+        description: Whether to include full file content
+        schema:
+          type: boolean
+          default: false
+      - name: check_status_updates
+        in: query
+        required: false
+        description: Whether to check and update file processing status (from the vector db service). If False, will not fetch and update the status, which may lead to performance gains.
+        schema:
+          type: boolean
+          default: true
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FileMetadata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/sources/{source_id}/files/{file_id}:
+    get:
+      tags:
+      - Sources and Files
+      summary: Get File Metadata
+      description: Retrieve metadata for a specific file by its ID.
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      - name: file_id
+        in: path
+        required: true
+        description: The ID of the file in the format 'file-<uuid4>'
+        schema:
+          type: string
+      - name: include_content
+        in: query
+        required: false
+        description: Whether to include full file content
+        schema:
+          type: boolean
+          default: false
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileMetadata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/sources/{source_id}/passages:
+    get:
+      tags:
+      - Sources and Files
+      summary: List Source Passages
+      description: List all passages associated with a data source.
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Message after which to retrieve the returned messages.
+        schema:
+          type: string
+      - name: before
+        in: query
+        required: false
+        description: Message before which to retrieve the returned messages.
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of messages to retrieve.
+        schema:
+          type: integer
+          default: 100
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/sources/{source_id}/upload:
+    post:
+      tags:
+      - Sources and Files
+      summary: Upload File To Source
+      description: Upload a file to a data source.
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      - name: duplicate_handling
+        in: query
+        required: false
+        description: How to handle duplicate filenames
+        schema:
+          type: string
+          default: suffix
+      - name: name
+        in: query
+        required: false
+        description: Optional custom name to override the uploaded file's name
+        schema:
+          type: string
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileMetadata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/sources/{source_id}/{file_id}:
+    delete:
+      tags:
+      - Sources and Files
+      summary: Delete File From Source
+      description: Delete a data source.
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      - name: file_id
+        in: path
+        required: true
+        description: The ID of the file in the format 'file-<uuid4>'
+        schema:
+          type: string
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/folders/:
+    get:
+      tags:
+      - Sources and Files
+      summary: List Folders
+      description: List all data folders created by a user.
+      parameters:
+      - name: before
+        in: query
+        required: false
+        description: Folder ID cursor for pagination. Returns folders that come before this folder ID in the specified sort order
+        schema:
+          type: string
+      - name: after
+        in: query
+        required: false
+        description: Folder ID cursor for pagination. Returns folders that come after this folder ID in the specified sort order
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Maximum number of folders to return
+        schema:
+          type: string
+          default: 50
+      - name: order
+        in: query
+        required: false
+        description: Sort order for folders by creation time. 'asc' for oldest first, 'desc' for newest first
+        schema:
+          type: string
+          default: asc
+          enum:
+          - asc
+          - desc
+      - name: order_by
+        in: query
+        required: false
+        description: Field to sort by
+        schema:
+          type: string
+          default: created_at
+      - name: name
+        in: query
+        required: false
+        description: Folder name to filter by
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Source'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+      - Sources and Files
+      summary: Create Folder
+      description: Create a new data folder.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /v1/folders/count:
+    get:
+      tags:
+      - Sources and Files
+      summary: Count Folders
+      description: Count all data folders created by a user.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/folders/{folder_id}:
+    get:
+      tags:
+      - Sources and Files
+      summary: Retrieve Folder
+      description: Get a folder by ID
+      parameters:
+      - name: folder_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Source'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+      - Sources and Files
+      summary: Modify Folder
+      description: Update the name or documentation of an existing data folder.
+      parameters:
+      - name: folder_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - Sources and Files
+      summary: Delete Folder
+      description: Delete a data folder.
+      parameters:
+      - name: folder_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /v1/folders/{folder_id}/upload:
+    post:
+      tags:
+      - Sources and Files
+      summary: Upload File To Folder
+      description: Upload a file to a data folder.
+      parameters:
+      - name: folder_id
+        in: path
+        required: true
+        description: The ID of the source in the format 'source-<uuid4>'
+        schema:
+          type: string
+      - name: duplicate_handling
+        in: query
+        required: false
+        description: How to handle duplicate filenames
+        schema:
+          type: string
+          default: suffix
+      - name: name
+        in: query
+        required: false
+        description: Optional custom name to override the uploaded file's name
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+components:
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPValidationError'
+  schemas:
+    Source:
+      type: object
+      description: A data source (also exposed as a folder) holding uploaded files for agent grounding.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        instructions:
+          type: string
+        embedding_config:
+          type: object
+          additionalProperties: true
+        vector_db_provider:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+    CreateSourceRequest:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        instructions:
+          type: string
+        embedding:
+          type: string
+    FileMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+        file_name:
+          type: string
+        source_id:
+          type: string
+        file_type:
+          type: string
+        file_size:
+          type: integer
+        processing_status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API key created at https://app.letta.com/api-keys, passed as `Authorization: Bearer YOUR_API_KEY`.'

@@ -1,0 +1,40 @@
+{
+  "provider": "letta-ai",
+  "sources": [
+    "letta-ai-agent-templates-api-openapi.yml",
+    "letta-ai-agents-api-openapi.yml",
+    "letta-ai-archival-memory-api-openapi.yml",
+    "letta-ai-chat-completions-api-openapi.yml",
+    "letta-ai-identities-api-openapi.yml",
+    "letta-ai-mcp-servers-api-openapi.yml",
+    "letta-ai-memory-blocks-api-openapi.yml",
+    "letta-ai-models-and-providers-api-openapi.yml",
+    "letta-ai-multi-agent-groups-api-openapi.yml",
+    "letta-ai-runs-jobs-and-steps-api-openapi.yml",
+    "letta-ai-sources-and-files-api-openapi.yml",
+    "letta-ai-tag-api-openapi.yml",
+    "letta-ai-tools-api-openapi.yml",
+    "letta-ai-voice-api-openapi.yml"
+  ],
+  "outputs": [
+    "letta-ai-agent-templates-api-openapi.yml",
+    "letta-ai-agents-api-openapi.yml",
+    "letta-ai-archival-memory-api-openapi.yml",
+    "letta-ai-chat-completions-api-openapi.yml",
+    "letta-ai-identities-api-openapi.yml",
+    "letta-ai-mcp-servers-api-openapi.yml",
+    "letta-ai-memory-blocks-api-openapi.yml",
+    "letta-ai-models-and-providers-api-openapi.yml",
+    "letta-ai-multi-agent-groups-api-openapi.yml",
+    "letta-ai-runs-jobs-and-steps-api-openapi.yml",
+    "letta-ai-sources-and-files-api-openapi.yml",
+    "letta-ai-tag-api-openapi.yml",
+    "letta-ai-tools-api-openapi.yml",
+    "letta-ai-voice-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [],
+  "skipped": []
+}
